@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduShare | Intelligent Notes Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fcfdfe; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .subject-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .subject-card:hover { transform: translateY(-10px) scale(1.02); }
+        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-slate-900">
+
+    <nav class="glass sticky top-0 z-50 px-8 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="showSubjects()">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <h1 class="text-2xl font-extrabold tracking-tight">EduShare</h1>
+        </div>
+        <button onclick="checkAdmin()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
+            Admin Access
+        </button>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-6 py-12">
+        
+        <div id="breadcrumb" class="mb-8 flex items-center text-slate-400 font-semibold hidden">
+            <button onclick="showSubjects()" class="hover:text-blue-600 transition">Subjects</button> 
+            <i class="fas fa-chevron-right mx-3 text-[10px]"></i> 
+            <span id="currentSubjectName" class="text-slate-900"></span>
+        </div>
+
+        <div id="subjectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-slide-up">
+            </div>
+
+        <div id="chapterView" class="hidden animate-slide-up">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+                <h2 id="viewTitle" class="text-4xl font-black text-slate-800 tracking-tight"></h2>
+                <span class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold">Auto-Sorted by Chapter</span>
+            </div>
+            <div id="chapterList" class="grid gap-4">
+                </div>
+        </div>
+
+    </main>
+
+    <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-extrabold">Upload Notes</h3>
+                <button onclick="closeModal()" class="text-slate-300 hover:text-slate-600 transition-colors text-2xl">&times;</button>
+            </div>
+            <div class="space-y-5">
+                <select id="uploadSubject" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="C programming">C programming</option>
+                    <option value="Web Designing">Web Designing</option>
+                    <option value="Graph Theory">Graph Theory</option>
+                    <option value="Basic of Electronics">Basic of Electronics</option>
+                </select>
+                <input type="text" id="uploadChapter" placeholder="Chapter Name (e.g. Chapter 1: Introduction)" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                
+                <input type="file" id="fileInput" class="hidden" accept=".pdf">
+                <label for="fileInput" class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-10 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all">
+                    <i class="fas fa-file-pdf text-4xl text-blue-500 mb-3"></i>
+                    <span id="fileName" class="text-slate-500 text-sm font-medium">Click to select PDF</span>
+                </label>
+                
+                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-600 transition-all">
+                    Publish Notes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURATION ---
+        const SUPABASE_URL = 'https://tyxeltkpandqqyfmimmk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eGVsdGtwYW5kcXF5Zm1pbW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxODMxMTUsImV4cCI6MjA4Mjc1OTExNX0.fGvS-0LK16POTVkfZbMsmfiAo-_WZqLZU9Lurh-a4gU';
+        const ADMIN_PASS = 'hEm@nt123'; // CHANGE THIS
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let allNotes = [];
+
+        const subjectMetadata = [
+            { name: 'C programming', icon: 'fa-code', color: 'blue' },
+            { name: 'Web Designing', icon: 'fa-pencil-ruler', color: 'purple' },
+            { name: 'Graph Theory', icon: 'fa-project-diagram', color: 'emerald' },
+            { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }
+        ];
+
+        // --- 2. CORE LOGIC ---
+        async function loadData() {
+            const { data } = await _supabase.from('notes_list').select('*');
+            allNotes = data || [];
+            showSubjects();
+        }
+
+        function showSubjects() {
+            document.getElementById('breadcrumb').classList.add('hidden');
+            document.getElementById('chapterView').classList.add('hidden');
+            const grid = document.getElementById('subjectGrid');
+            grid.classList.remove('hidden');
+
+            grid.innerHTML = subjectMetadata.map(s => {
+                const count = allNotes.filter(n => n.subject === s.name).length;
+                return `
+                <div onclick="showChapters('${s.name}')" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer shadow-sm border border-white/50">
+                    <div class="w-16 h-16 bg-${s.color}-100 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6">
+                        <i class="fas ${s.icon}"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-800 mb-2">${s.name}</h3>
+                    <div class="flex items-center text-slate-400 text-sm font-semibold">
+                        <i class="fas fa-folder-open mr-2"></i> ${count} Chapters
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function showChapters(subName) {
+            document.getElementById('subjectGrid').classList.add('hidden');
+            document.getElementById('breadcrumb').classList.remove('hidden');
+            document.getElementById('currentSubjectName').innerText = subName;
+            document.getElementById('viewTitle').innerText = subName;
+            
+            const view = document.getElementById('chapterView');
+            view.classList.remove('hidden');
+
+            // --- THE SORTING LOGIC ---
+            // Uses localeCompare with numeric:true to handle "Chapter 1, 2, 10" correctly
+            const filtered = allNotes
+                .filter(n => n.subject === subName)
+                .sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }));
+
+            const list = document.getElementById('chapterList');
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="p-20 text-center glass rounded-3xl text-slate-400 font-medium">No notes uploaded for this subject yet.</div>`;
+            } else {
+                list.innerHTML = filtered.map(n => `
+                    <div class="glass p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between border border-slate-100 group transition-all hover:border-blue-200">
+                        <div class="flex items-center gap-4 mb-4 md:mb-0">
+                            <div class="w-12 h-12 bg-white shadow-sm rounded-xl flex items-center justify-center text-blue-600">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg">${n.title}</h4>
+                                <button onclick="editNoteName(${n.id})" class="text-xs text-blue-500 font-bold opacity-0 group-hover:opacity-100 transition-all hover:underline">
+                                    <i class="fas fa-edit mr-1"></i>Rename
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="deleteNote(${n.id})" class="p-3 text-slate-300 hover:text-red-500 transition-colors">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <a href="${n.file_url}" target="_blank" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all shadow-md active:scale-95">
+                                <i class="fas fa-eye mr-2"></i>Open Note
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // --- ADMIN ACTIONS ---
+        async function editNoteName(id) {
+            const pass = prompt("Enter Admin Password:");
+            if (pass !== ADMIN_PASS) return alert("Wrong Password");
+            const newName = prompt("Enter new chapter name:");
+            if (newName) {
+                await _supabase.from('notes_list').update({ title: newName }).eq('id', id);
+                loadData();
+            }
+        }
+
+        async function handleUpload() {
+            const file = document.getElementById('fileInput').files[0];
+            const subject = document.getElementById('uploadSubject').value;
+            const chapter = document.getElementById('uploadChapter').value;
+            const btn = document.getElementById('uploadBtn');
+
+            if(!file || !chapter) return alert("Missing fields!");
+
+            btn.innerText = "Syncing with Cloud...";
+            btn.disabled = true;
+
+            const fName = `${Date.now()}_${file.name}`;
+            const { data: sData, error: sErr } = await _supabase.storage.from('notes').upload(fName, file);
+            
+            if (sErr) {
+                btn.innerText = "Publish Notes";
+                btn.disabled = false;
+                return alert(sErr.message);
+            }
+
+            const { data: url } = _supabase.storage.from('notes').getPublicUrl(fName);
+            await _supabase.from('notes_list').insert([{ title: chapter, subject: subject, file_url: url.publicUrl }]);
+            
+            location.reload();
+        }
+
+        function checkAdmin() {
+            const pass = prompt("Admin Password:");
+            if (pass === ADMIN_PASS) document.getElementById('uploadModal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+
+        async function deleteNote(id) {
+            if(prompt("Enter Admin Password to delete:") === ADMIN_PASS) {
+                await _supabase.from('notes_list').delete().eq('id', id);
+                loadData();
+            }
+        }
+
+        document.getElementById('fileInput').onchange = e => document.getElementById('fileName').innerText = e.target.files[0].name;
+
+        // Init App
+        loadData();
+    </script>
+</body>
+</html>
