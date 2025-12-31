@@ -44,16 +44,14 @@
             </div>
         </div>
 
-        <div id="subjectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-slide-up">
-            </div>
+        <div id="subjectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-slide-up"></div>
 
         <div id="chapterView" class="hidden animate-slide-up">
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
                 <h2 id="viewTitle" class="text-4xl font-black text-slate-800 tracking-tight"></h2>
                 <span class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold w-fit">Auto-Sorted by Chapter</span>
             </div>
-            <div id="chapterList" class="grid gap-4">
-                </div>
+            <div id="chapterList" class="grid gap-4"></div>
         </div>
     </main>
 
@@ -93,7 +91,6 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURATION ---
         const SUPABASE_URL = 'https://tyxeltkpandqqyfmimmk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eGVsdGtwYW5kcXF5Zm1pbW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxODMxMTUsImV4cCI6MjA4Mjc1OTExNX0.fGvS-0LK16POTVkfZbMsmfiAo-_WZqLZU9Lurh-a4gU';
         const ADMIN_PASS = 'hEm@nt123';
@@ -108,9 +105,9 @@
             { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }
         ];
 
-        // --- 2. CORE LOGIC ---
         async function loadData() {
-            const { data } = await _supabase.from('notes_list').select('*');
+            const { data, error } = await _supabase.from('notes_list').select('*');
+            if (error) console.error("Load error:", error);
             allNotes = data || [];
             showSubjects();
         }
@@ -132,8 +129,7 @@
                     <div class="flex items-center text-slate-400 text-sm font-semibold">
                         <i class="fas fa-folder-open mr-2"></i> ${count} Chapters
                     </div>
-                </div>
-                `;
+                </div>`;
             }).join('');
         }
 
@@ -175,19 +171,7 @@
                                 <i class="fas fa-eye mr-2"></i>Open Note
                             </a>
                         </div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // --- ADMIN & UTILS ---
-        async function editNoteName(id) {
-            const pass = prompt("Enter Admin Password:");
-            if (pass !== ADMIN_PASS) return alert("Wrong Password");
-            const newName = prompt("Enter new chapter name:");
-            if (newName) {
-                await _supabase.from('notes_list').update({ title: newName }).eq('id', id);
-                loadData();
+                    </div>`).join('');
             }
         }
 
@@ -197,36 +181,72 @@
             const chapter = document.getElementById('uploadChapter').value;
             const btn = document.getElementById('uploadBtn');
 
-            if(!file || !chapter) return alert("Missing fields!");
-            btn.innerText = "Syncing with Cloud...";
-            btn.disabled = true;
+            if(!file || !chapter) return alert("Please select a file and enter a chapter name!");
 
-            const fName = `${Date.now()}_${file.name}`;
-            const { data, error } = await _supabase.storage.from('notes').upload(fName, file);
-            
-            if (error) {
+            try {
+                btn.innerText = "Step 1/2: Uploading File...";
+                btn.disabled = true;
+
+                // 1. Upload file to Storage
+                const fName = `${Date.now()}_${file.name}`;
+                const { data: sData, error: sErr } = await _supabase.storage.from('notes').upload(fName, file);
+                if (sErr) throw sErr;
+
+                btn.innerText = "Step 2/2: Saving to List...";
+
+                // 2. Get Public URL
+                const { data: urlData } = _supabase.storage.from('notes').getPublicUrl(fName);
+                const publicUrl = urlData.publicUrl;
+
+                // 3. Insert into Database
+                const { error: dbErr } = await _supabase.from('notes_list').insert([
+                    { title: chapter, subject: subject, file_url: publicUrl }
+                ]);
+                if (dbErr) throw dbErr;
+
+                alert("✅ Success! Note has been published.");
+                location.reload(); // Hard refresh to show new data
+
+            } catch (err) {
+                alert("❌ Error: " + err.message);
+                console.error(err);
+            } finally {
                 btn.innerText = "Publish Notes";
                 btn.disabled = false;
-                return alert(error.message);
             }
+        }
 
-            const { data: url } = _supabase.storage.from('notes').getPublicUrl(fName);
-            await _supabase.from('notes_list').insert([{ title: chapter, subject: subject, file_url: url.publicUrl }]);
-            location.reload();
+        async function editNoteName(id) {
+            const pass = prompt("Enter Admin Password:");
+            if (pass !== ADMIN_PASS) return alert("Wrong Password");
+            const newName = prompt("Enter new chapter name:");
+            if (newName) {
+                const { error } = await _supabase.from('notes_list').update({ title: newName }).eq('id', id);
+                if (error) alert(error.message);
+                else loadData();
+            }
         }
 
         function checkAdmin() {
             const pass = prompt("Admin Password:");
             if (pass === ADMIN_PASS) document.getElementById('uploadModal').classList.remove('hidden');
+            else if(pass) alert("Incorrect Password");
         }
+
         function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+
         async function deleteNote(id) {
-            if(prompt("Enter Admin Password to delete:") === ADMIN_PASS) {
-                await _supabase.from('notes_list').delete().eq('id', id);
-                loadData();
-            }
+            const pass = prompt("Enter Admin Password to delete:");
+            if(pass === ADMIN_PASS) {
+                const { error } = await _supabase.from('notes_list').delete().eq('id', id);
+                if (error) alert(error.message);
+                else loadData();
+            } else if(pass) alert("Incorrect Password");
         }
-        document.getElementById('fileInput').onchange = e => document.getElementById('fileName').innerText = e.target.files[0].name;
+
+        document.getElementById('fileInput').onchange = e => {
+            if(e.target.files.length > 0) document.getElementById('fileName').innerText = e.target.files[0].name;
+        };
 
         loadData();
     </script>
