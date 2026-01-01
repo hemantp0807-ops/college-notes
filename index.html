@@ -16,6 +16,8 @@
         .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         main { flex: 1; }
+        .admin-only { display: none; }
+        body.is-admin .admin-only { display: inline-flex; }
     </style>
 </head>
 <body class="text-slate-900">
@@ -27,13 +29,17 @@
             </div>
             <h1 class="text-2xl font-extrabold tracking-tight uppercase">AGC BCA Notes</h1>
         </div>
-        <button onclick="checkAdmin()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
-            Admin Access
-        </button>
+        <div class="flex gap-3">
+            <button id="logoutBtn" onclick="handleLogout()" class="admin-only bg-red-50 text-red-600 px-4 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-all">
+                Logout
+            </button>
+            <button id="adminAuthBtn" onclick="checkAdmin()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                Admin Access
+            </button>
+        </div>
     </nav>
 
     <main class="max-w-6xl mx-auto px-6 py-12 w-full">
-        
         <div id="navigationControls" class="mb-8 flex items-center justify-between hidden">
             <button onclick="showSubjects()" class="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">
                 <i class="fas fa-arrow-left"></i> Back to Subjects
@@ -62,6 +68,21 @@
         </p>
     </footer>
 
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
+            <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold mb-2">Admin Login</h3>
+            <p class="text-slate-500 mb-8 text-sm">Enter password to unlock upload and edit tools.</p>
+            <input type="password" id="adminPassInput" placeholder="Password" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500 mb-4 text-center">
+            <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all">
+                Login
+            </button>
+            <button onclick="closeLoginModal()" class="mt-4 text-slate-400 hover:text-slate-600 text-sm font-bold">Cancel</button>
+        </div>
+    </div>
+
     <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
             <div class="flex justify-between items-center mb-8">
@@ -75,7 +96,7 @@
                     <option value="Graph Theory">Graph Theory</option>
                     <option value="Basic of Electronics">Basic of Electronics</option>
                 </select>
-                <input type="text" id="uploadChapter" placeholder="Chapter Name (e.g. Chapter 1: Intro)" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="uploadChapter" placeholder="Chapter Name (e.g. Chapter 1)" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
                 
                 <input type="file" id="fileInput" class="hidden" accept=".pdf">
                 <label for="fileInput" class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-10 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all">
@@ -97,6 +118,7 @@
 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let allNotes = [];
+        let isAdmin = false;
 
         const subjectMetadata = [
             { name: 'C programming', icon: 'fa-code', color: 'blue' },
@@ -105,9 +127,44 @@
             { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }
         ];
 
+        // --- Auth Logic ---
+        function checkSession() {
+            if (localStorage.getItem('agc_admin') === 'true') {
+                isAdmin = true;
+                document.body.classList.add('is-admin');
+                document.getElementById('adminAuthBtn').innerHTML = '<i class="fas fa-plus mr-2"></i>Upload New';
+            }
+        }
+
+        function checkAdmin() {
+            if (isAdmin) {
+                document.getElementById('uploadModal').classList.remove('hidden');
+            } else {
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
+        }
+
+        function attemptLogin() {
+            const val = document.getElementById('adminPassInput').value;
+            if (val === ADMIN_PASS) {
+                localStorage.setItem('agc_admin', 'true');
+                location.reload();
+            } else {
+                alert("Wrong Password");
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('agc_admin');
+            location.reload();
+        }
+
+        function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+        function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+
+        // --- Data Logic ---
         async function loadData() {
             const { data, error } = await _supabase.from('notes_list').select('*');
-            if (error) console.error("Load error:", error);
             allNotes = data || [];
             showSubjects();
         }
@@ -117,7 +174,6 @@
             document.getElementById('chapterView').classList.add('hidden');
             const grid = document.getElementById('subjectGrid');
             grid.classList.remove('hidden');
-
             grid.innerHTML = subjectMetadata.map(s => {
                 const count = allNotes.filter(n => n.subject === s.name).length;
                 return `
@@ -138,41 +194,27 @@
             document.getElementById('navigationControls').classList.remove('hidden');
             document.getElementById('currentSubjectName').innerText = subName;
             document.getElementById('viewTitle').innerText = subName;
-            
-            const view = document.getElementById('chapterView');
-            view.classList.remove('hidden');
+            document.getElementById('chapterView').classList.remove('hidden');
 
-            const filtered = allNotes
-                .filter(n => n.subject === subName)
-                .sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }));
+            const filtered = allNotes.filter(n => n.subject === subName)
+                .sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
 
             const list = document.getElementById('chapterList');
-            if (filtered.length === 0) {
-                list.innerHTML = `<div class="p-20 text-center glass rounded-3xl text-slate-400 font-medium">No notes uploaded for this subject yet.</div>`;
-            } else {
-                list.innerHTML = filtered.map(n => `
-                    <div class="glass p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between border border-slate-100 group transition-all hover:border-blue-200">
-                        <div class="flex items-center gap-4 mb-4 md:mb-0">
-                            <div class="w-12 h-12 bg-white shadow-sm rounded-xl flex items-center justify-center text-blue-600">
-                                <i class="fas fa-file-pdf"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-800 text-lg">${n.title}</h4>
-                                <button onclick="editNoteName(${n.id})" class="text-xs text-blue-500 font-bold opacity-0 group-hover:opacity-100 transition-all hover:underline">
-                                    <i class="fas fa-edit mr-1"></i>Rename
-                                </button>
+            list.innerHTML = filtered.length === 0 ? `<div class="p-20 text-center glass rounded-3xl text-slate-400 font-medium">No notes yet.</div>` : 
+            filtered.map(n => `
+                <div class="glass p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between border border-slate-100 group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white shadow-sm rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-file-pdf"></i></div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">${n.title}</h4>
+                            <div class="admin-only gap-2">
+                                <button onclick="editNoteName(${n.id})" class="text-xs text-blue-500 font-bold hover:underline">Rename</button>
+                                <button onclick="deleteNote(${n.id})" class="text-xs text-red-500 font-bold hover:underline ml-3">Delete</button>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="deleteNote(${n.id})" class="p-3 text-slate-300 hover:text-red-500 transition-colors">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                            <a href="${n.file_url}" target="_blank" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all shadow-md active:scale-95">
-                                <i class="fas fa-eye mr-2"></i>Open Note
-                            </a>
-                        </div>
-                    </div>`).join('');
-            }
+                    </div>
+                    <a href="${n.file_url}" target="_blank" class="mt-4 md:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all text-center">Open Note</a>
+                </div>`).join('');
         }
 
         async function handleUpload() {
@@ -181,73 +223,38 @@
             const chapter = document.getElementById('uploadChapter').value;
             const btn = document.getElementById('uploadBtn');
 
-            if(!file || !chapter) return alert("Please select a file and enter a chapter name!");
+            if(!file || !chapter) return alert("Fill all fields");
+            btn.disabled = true;
+            btn.innerText = "Uploading...";
 
-            try {
-                btn.innerText = "Step 1/2: Uploading File...";
-                btn.disabled = true;
+            const fName = `${Date.now()}_${file.name}`;
+            await _supabase.storage.from('notes').upload(fName, file);
+            const { data } = _supabase.storage.from('notes').getPublicUrl(fName);
+            
+            await _supabase.from('notes_list').insert([{ title: chapter, subject: subject, file_url: data.publicUrl }]);
+            location.reload();
+        }
 
-                // 1. Upload file to Storage
-                const fName = `${Date.now()}_${file.name}`;
-                const { data: sData, error: sErr } = await _supabase.storage.from('notes').upload(fName, file);
-                if (sErr) throw sErr;
-
-                btn.innerText = "Step 2/2: Saving to List...";
-
-                // 2. Get Public URL
-                const { data: urlData } = _supabase.storage.from('notes').getPublicUrl(fName);
-                const publicUrl = urlData.publicUrl;
-
-                // 3. Insert into Database
-                const { error: dbErr } = await _supabase.from('notes_list').insert([
-                    { title: chapter, subject: subject, file_url: publicUrl }
-                ]);
-                if (dbErr) throw dbErr;
-
-                alert("✅ Success! Note has been published.");
-                location.reload(); // Hard refresh to show new data
-
-            } catch (err) {
-                alert("❌ Error: " + err.message);
-                console.error(err);
-            } finally {
-                btn.innerText = "Publish Notes";
-                btn.disabled = false;
+        async function deleteNote(id) {
+            if(confirm("Delete this note?")) {
+                await _supabase.from('notes_list').delete().eq('id', id);
+                loadData();
             }
         }
 
         async function editNoteName(id) {
-            const pass = prompt("Enter Admin Password:");
-            if (pass !== ADMIN_PASS) return alert("Wrong Password");
-            const newName = prompt("Enter new chapter name:");
-            if (newName) {
-                const { error } = await _supabase.from('notes_list').update({ title: newName }).eq('id', id);
-                if (error) alert(error.message);
-                else loadData();
+            const newName = prompt("New Name:");
+            if(newName) {
+                await _supabase.from('notes_list').update({ title: newName }).eq('id', id);
+                loadData();
             }
         }
 
-        function checkAdmin() {
-            const pass = prompt("Admin Password:");
-            if (pass === ADMIN_PASS) document.getElementById('uploadModal').classList.remove('hidden');
-            else if(pass) alert("Incorrect Password");
-        }
-
-        function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
-
-        async function deleteNote(id) {
-            const pass = prompt("Enter Admin Password to delete:");
-            if(pass === ADMIN_PASS) {
-                const { error } = await _supabase.from('notes_list').delete().eq('id', id);
-                if (error) alert(error.message);
-                else loadData();
-            } else if(pass) alert("Incorrect Password");
-        }
-
         document.getElementById('fileInput').onchange = e => {
-            if(e.target.files.length > 0) document.getElementById('fileName').innerText = e.target.files[0].name;
+            if(e.target.files[0]) document.getElementById('fileName').innerText = e.target.files[0].name;
         };
 
+        checkSession();
         loadData();
     </script>
 </body>
