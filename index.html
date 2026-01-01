@@ -201,35 +201,13 @@
             showChapters(activeSubject);
         }
 
-        // DIRECT DOWNLOAD LOGIC
-        async function downloadPdfDirectly() {
-            const btn = document.getElementById('directDownloadBtn');
-            const originalText = btn.innerHTML;
-            
-            try {
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-                btn.disabled = true;
-
-                const response = await fetch(currentPdfUrl);
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
-                
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = `${currentPdfTitle || 'AGC-BCA-Note'}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(blobUrl);
-
-            } catch (err) {
-                alert("Download failed. Try opening the link manually.");
-                window.open(currentPdfUrl, '_blank');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
+      function downloadPdfDirectly() {
+    // This tells Supabase to send the file as a download instead of a preview
+    const forceDownloadUrl = currentPdfUrl + (currentPdfUrl.includes('?') ? '&' : '?') + 'download=';
+    
+    // This opens the download link in a way the phone can grab it
+    window.location.href = forceDownloadUrl;
+}
 
         // Admin Auth
         function checkSession() { if (localStorage.getItem('agc_admin') === 'true') { isAdmin = true; document.body.classList.add('is-admin'); document.getElementById('adminAuthBtn').innerText = 'Upload +'; } }
@@ -262,3 +240,4 @@
     </script>
 </body>
 </html>
+
