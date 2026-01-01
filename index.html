@@ -13,16 +13,17 @@
         .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
         .subject-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .subject-card:hover { transform: translateY(-10px) scale(1.02); }
-        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         main { flex: 1; }
         .admin-only { display: none; }
         body.is-admin .admin-only { display: inline-flex; }
+        #pdfFrame { width: 100%; height: calc(100vh - 120px); border-radius: 24px; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body class="text-slate-900">
 
-    <nav class="glass sticky top-0 z-50 px-8 py-4 flex justify-between items-center shadow-sm">
+    <nav id="mainNav" class="glass sticky top-0 z-50 px-8 py-4 flex justify-between items-center shadow-sm">
         <div class="flex items-center gap-2 cursor-pointer" onclick="showSubjects()">
             <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
                 <i class="fas fa-university"></i>
@@ -39,7 +40,7 @@
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-6 py-12 w-full">
+    <main class="max-w-6xl mx-auto px-6 py-8 w-full">
         <div id="navigationControls" class="mb-8 flex items-center justify-between hidden">
             <button onclick="showSubjects()" class="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">
                 <i class="fas fa-arrow-left"></i> Back to Subjects
@@ -59,9 +60,21 @@
             </div>
             <div id="chapterList" class="grid gap-4"></div>
         </div>
+
+        <div id="pdfViewer" class="hidden animate-slide-up">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="backToChapters()" class="flex items-center gap-2 text-slate-600 font-bold hover:bg-slate-100 px-4 py-2 rounded-xl transition">
+                    <i class="fas fa-chevron-left"></i> Back to Chapters
+                </button>
+                <a id="downloadBtn" href="#" download target="_blank" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-md flex items-center gap-2">
+                    <i class="fas fa-download"></i> Download PDF
+                </a>
+            </div>
+            <iframe id="pdfFrame" src=""></iframe>
+        </div>
     </main>
 
-    <footer class="py-8 text-center border-t border-slate-100 mt-12">
+    <footer id="mainFooter" class="py-8 text-center border-t border-slate-100 mt-12">
         <p class="text-slate-400 font-medium">
             Developed with <i class="fas fa-heart text-red-500 mx-1"></i> by 
             <span class="text-slate-900 font-bold">Hemant Patil</span>
@@ -70,15 +83,10 @@
 
     <div id="loginModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
-            <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6">
-                <i class="fas fa-lock"></i>
-            </div>
+            <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6"><i class="fas fa-lock"></i></div>
             <h3 class="text-2xl font-extrabold mb-2">Admin Login</h3>
-            <p class="text-slate-500 mb-8 text-sm">Enter password to unlock upload and edit tools.</p>
             <input type="password" id="adminPassInput" placeholder="Password" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500 mb-4 text-center">
-            <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all">
-                Login
-            </button>
+            <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all">Login</button>
             <button onclick="closeLoginModal()" class="mt-4 text-slate-400 hover:text-slate-600 text-sm font-bold">Cancel</button>
         </div>
     </div>
@@ -96,17 +104,13 @@
                     <option value="Graph Theory">Graph Theory</option>
                     <option value="Basic of Electronics">Basic of Electronics</option>
                 </select>
-                <input type="text" id="uploadChapter" placeholder="Chapter Name (e.g. Chapter 1)" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
-                
+                <input type="text" id="uploadChapter" placeholder="Chapter Name" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf">
                 <label for="fileInput" class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-10 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all">
                     <i class="fas fa-file-pdf text-4xl text-blue-500 mb-3"></i>
                     <span id="fileName" class="text-slate-500 text-sm font-medium">Select PDF Note</span>
                 </label>
-                
-                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-600 transition-all">
-                    Publish Notes
-                </button>
+                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-600 transition-all">Publish Notes</button>
             </div>
         </div>
     </div>
@@ -119,6 +123,7 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let allNotes = [];
         let isAdmin = false;
+        let currentSubject = "";
 
         const subjectMetadata = [
             { name: 'C programming', icon: 'fa-code', color: 'blue' },
@@ -135,75 +140,45 @@
             }
         }
 
-        function checkAdmin() {
-            if (isAdmin) {
-                document.getElementById('uploadModal').classList.remove('hidden');
-            } else {
-                document.getElementById('loginModal').classList.remove('hidden');
-            }
-        }
-
-        function attemptLogin() {
-            const val = document.getElementById('adminPassInput').value;
-            if (val === ADMIN_PASS) {
-                localStorage.setItem('agc_admin', 'true');
-                location.reload();
-            } else {
-                alert("Wrong Password");
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('agc_admin');
-            location.reload();
-        }
-
-        function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
-        function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
-
         async function loadData() {
-            const { data, error } = await _supabase.from('notes_list').select('*');
+            const { data } = await _supabase.from('notes_list').select('*');
             allNotes = data || [];
             showSubjects();
         }
 
         function showSubjects() {
+            window.scrollTo(0,0);
             document.getElementById('navigationControls').classList.add('hidden');
             document.getElementById('chapterView').classList.add('hidden');
+            document.getElementById('pdfViewer').classList.add('hidden');
+            document.getElementById('mainNav').classList.remove('hidden');
+            document.getElementById('mainFooter').classList.remove('hidden');
             const grid = document.getElementById('subjectGrid');
             grid.classList.remove('hidden');
             grid.innerHTML = subjectMetadata.map(s => {
                 const count = allNotes.filter(n => n.subject === s.name).length;
                 return `
                 <div onclick="showChapters('${s.name}')" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer shadow-sm border border-white/50">
-                    <div class="w-16 h-16 bg-${s.color}-100 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6">
-                        <i class="fas ${s.icon}"></i>
-                    </div>
+                    <div class="w-16 h-16 bg-${s.color}-100 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6"><i class="fas ${s.icon}"></i></div>
                     <h3 class="text-xl font-extrabold text-slate-800 mb-2">${s.name}</h3>
-                    <div class="flex items-center text-slate-400 text-sm font-semibold">
-                        <i class="fas fa-folder-open mr-2"></i> ${count} Chapters
-                    </div>
+                    <div class="flex items-center text-slate-400 text-sm font-semibold"><i class="fas fa-folder-open mr-2"></i> ${count} Chapters</div>
                 </div>`;
             }).join('');
         }
 
         function showChapters(subName) {
+            currentSubject = subName;
             document.getElementById('subjectGrid').classList.add('hidden');
+            document.getElementById('pdfViewer').classList.add('hidden');
             document.getElementById('navigationControls').classList.remove('hidden');
             document.getElementById('currentSubjectName').innerText = subName;
             document.getElementById('viewTitle').innerText = subName;
             document.getElementById('chapterView').classList.remove('hidden');
 
-            const filtered = allNotes.filter(n => n.subject === subName)
-                .sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
-
+            const filtered = allNotes.filter(n => n.subject === subName).sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
             const list = document.getElementById('chapterList');
             list.innerHTML = filtered.length === 0 ? `<div class="p-20 text-center glass rounded-3xl text-slate-400 font-medium">No notes yet.</div>` : 
-            filtered.map(n => {
-                // PDF Viewer URL for mobile compatibility
-                const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(n.file_url)}&embedded=true`;
-                
-                return `
+            filtered.map(n => `
                 <div class="glass p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between border border-slate-100 group">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 bg-white shadow-sm rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-file-pdf"></i></div>
@@ -215,47 +190,57 @@
                             </div>
                         </div>
                     </div>
-                    <a href="${viewerUrl}" target="_self" class="mt-4 md:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all text-center">Open Note</a>
-                </div>`;
-            }).join('');
+                    <button onclick="openPdfViewer('${n.file_url}')" class="mt-4 md:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all text-center">View Note</button>
+                </div>`).join('');
         }
+
+        function openPdfViewer(url) {
+            document.getElementById('chapterView').classList.add('hidden');
+            document.getElementById('navigationControls').classList.add('hidden');
+            document.getElementById('mainNav').classList.add('hidden'); // Hide Nav for full screen feel
+            document.getElementById('mainFooter').classList.add('hidden');
+            
+            const viewer = document.getElementById('pdfViewer');
+            const frame = document.getElementById('pdfFrame');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            viewer.classList.remove('hidden');
+            // Using Google Viewer for better mobile support
+            frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+            downloadBtn.href = url;
+        }
+
+        function backToChapters() {
+            document.getElementById('pdfViewer').classList.add('hidden');
+            document.getElementById('mainNav').classList.remove('hidden');
+            document.getElementById('mainFooter').classList.remove('hidden');
+            showChapters(currentSubject);
+        }
+
+        // Admin & Utility Functions
+        function checkAdmin() { isAdmin ? document.getElementById('uploadModal').classList.remove('hidden') : document.getElementById('loginModal').classList.remove('hidden'); }
+        function attemptLogin() { if(document.getElementById('adminPassInput').value === ADMIN_PASS) { localStorage.setItem('agc_admin', 'true'); location.reload(); } else alert("Wrong Password"); }
+        function handleLogout() { localStorage.removeItem('agc_admin'); location.reload(); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+        function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
 
         async function handleUpload() {
             const file = document.getElementById('fileInput').files[0];
             const subject = document.getElementById('uploadSubject').value;
             const chapter = document.getElementById('uploadChapter').value;
             const btn = document.getElementById('uploadBtn');
-
             if(!file || !chapter) return alert("Fill all fields");
-            btn.disabled = true;
-            btn.innerText = "Uploading...";
-
+            btn.disabled = true; btn.innerText = "Uploading...";
             const fName = `${Date.now()}_${file.name}`;
             await _supabase.storage.from('notes').upload(fName, file);
             const { data } = _supabase.storage.from('notes').getPublicUrl(fName);
-            
             await _supabase.from('notes_list').insert([{ title: chapter, subject: subject, file_url: data.publicUrl }]);
             location.reload();
         }
 
-        async function deleteNote(id) {
-            if(confirm("Delete this note?")) {
-                await _supabase.from('notes_list').delete().eq('id', id);
-                loadData();
-            }
-        }
-
-        async function editNoteName(id) {
-            const newName = prompt("New Name:");
-            if(newName) {
-                await _supabase.from('notes_list').update({ title: newName }).eq('id', id);
-                loadData();
-            }
-        }
-
-        document.getElementById('fileInput').onchange = e => {
-            if(e.target.files[0]) document.getElementById('fileName').innerText = e.target.files[0].name;
-        };
+        async function deleteNote(id) { if(confirm("Delete?")) { await _supabase.from('notes_list').delete().eq('id', id); loadData(); } }
+        async function editNoteName(id) { const n = prompt("New Name:"); if(n) { await _supabase.from('notes_list').update({ title: n }).eq('id', id); loadData(); } }
+        document.getElementById('fileInput').onchange = e => { if(e.target.files[0]) document.getElementById('fileName').innerText = e.target.files[0].name; };
 
         checkSession();
         loadData();
