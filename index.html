@@ -127,7 +127,6 @@
             { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }
         ];
 
-        // --- Auth Logic ---
         function checkSession() {
             if (localStorage.getItem('agc_admin') === 'true') {
                 isAdmin = true;
@@ -162,7 +161,6 @@
         function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
         function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
 
-        // --- Data Logic ---
         async function loadData() {
             const { data, error } = await _supabase.from('notes_list').select('*');
             allNotes = data || [];
@@ -201,7 +199,11 @@
 
             const list = document.getElementById('chapterList');
             list.innerHTML = filtered.length === 0 ? `<div class="p-20 text-center glass rounded-3xl text-slate-400 font-medium">No notes yet.</div>` : 
-            filtered.map(n => `
+            filtered.map(n => {
+                // PDF Viewer URL for mobile compatibility
+                const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(n.file_url)}&embedded=true`;
+                
+                return `
                 <div class="glass p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between border border-slate-100 group">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 bg-white shadow-sm rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-file-pdf"></i></div>
@@ -213,8 +215,9 @@
                             </div>
                         </div>
                     </div>
-                    <a href="${n.file_url}" target="_blank" class="mt-4 md:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all text-center">Open Note</a>
-                </div>`).join('');
+                    <a href="${viewerUrl}" target="_self" class="mt-4 md:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all text-center">Open Note</a>
+                </div>`;
+            }).join('');
         }
 
         async function handleUpload() {
