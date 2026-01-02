@@ -19,6 +19,7 @@
         .admin-only { display: none; }
         body.is-admin .admin-only { display: inline-flex; }
         #pdfFrame { width: 100%; height: calc(100vh - 160px); border-radius: 24px; border: 1px solid #e2e8f0; background: white; }
+        marquee { font-weight: 600; padding: 10px 0; }
     </style>
 </head>
 <body class="text-slate-900">
@@ -39,6 +40,12 @@
             </button>
         </div>
     </nav>
+
+    <div id="marqueeBar" class="bg-blue-600 text-white overflow-hidden shadow-inner">
+        <marquee id="updateMarquee" behavior="scroll" direction="left" scrollamount="6">
+            Connecting to server for updates...
+        </marquee>
+    </div>
 
     <main class="max-w-6xl mx-auto px-6 py-8 w-full">
         <div id="navigationControls" class="mb-8 flex items-center justify-between hidden">
@@ -90,9 +97,17 @@
     </div>
 
     <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
-            <h3 class="text-2xl font-extrabold mb-8">Upload Notes</h3>
-            <div class="space-y-5">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-extrabold mb-6">Admin Dashboard</h3>
+            
+            <div class="mb-8 p-4 bg-blue-50 rounded-2xl">
+                <p class="text-xs font-bold text-blue-600 uppercase mb-2">Update Marquee Text</p>
+                <input type="text" id="marqueeInput" placeholder="New Update Message..." class="w-full p-3 rounded-xl border-none ring-1 ring-slate-200 mb-3 text-sm">
+                <button onclick="updateAnnouncement()" id="marqueeBtn" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-sm">Save Update</button>
+            </div>
+
+            <div class="space-y-4">
+                <p class="text-xs font-bold text-slate-400 uppercase">Upload New PDF</p>
                 <select id="uploadSubject" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                     <option value="C programming">C programming</option>
                     <option value="Web Designing">Web Designing</option>
@@ -101,12 +116,12 @@
                 </select>
                 <input type="text" id="uploadChapter" placeholder="Chapter Title" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf">
-                <label for="fileInput" class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 cursor-pointer hover:bg-blue-50 transition-all">
-                    <i class="fas fa-file-pdf text-3xl text-blue-500 mb-2"></i>
-                    <span id="fileName" class="text-slate-500 text-sm">Select PDF</span>
+                <label for="fileInput" class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 cursor-pointer hover:bg-blue-50 transition-all">
+                    <i class="fas fa-file-pdf text-2xl text-blue-500 mb-2"></i>
+                    <span id="fileName" class="text-slate-500 text-xs">Select PDF</span>
                 </label>
-                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish</button>
-                <button onclick="closeModal()" class="w-full text-slate-400 font-bold">Close</button>
+                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish Note</button>
+                <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-sm">Close</button>
             </div>
         </div>
     </div>
@@ -121,12 +136,34 @@
         let isAdmin = false;
         let activeSubject = "";
         let currentPdfUrl = "";
-        let currentPdfTitle = "";
 
         async function loadData() {
-            const { data } = await _supabase.from('notes_list').select('*');
-            allNotes = data || [];
+            // Load Notes
+            const { data: notes } = await _supabase.from('notes_list').select('*');
+            allNotes = notes || [];
+
+            // Load Announcement
+            const { data: ann } = await _supabase.from('announcements').select('content').eq('id', 1).single();
+            if(ann) {
+                document.getElementById('updateMarquee').innerText = ann.content;
+                document.getElementById('marqueeInput').value = ann.content;
+            }
+            
             showSubjects();
+        }
+
+        async function updateAnnouncement() {
+            const newText = document.getElementById('marqueeInput').value;
+            if(!newText) return;
+            const btn = document.getElementById('marqueeBtn');
+            btn.innerText = "Saving...";
+            
+            const { error } = await _supabase.from('announcements').update({ content: newText }).eq('id', 1);
+            if(!error) {
+                document.getElementById('updateMarquee').innerText = newText;
+                alert("Announcement updated!");
+            }
+            btn.innerText = "Save Update";
         }
 
         function showSubjects() {
@@ -135,6 +172,7 @@
             document.getElementById('chapterView').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.add('hidden');
             document.getElementById('mainNav').classList.remove('hidden');
+            document.getElementById('marqueeBar').classList.remove('hidden');
             document.getElementById('mainFooter').classList.remove('hidden');
             const grid = document.getElementById('subjectGrid');
             grid.classList.remove('hidden');
@@ -184,12 +222,11 @@
 
         function openPdfMode(url, title) {
             currentPdfUrl = url;
-            currentPdfTitle = title;
             document.getElementById('chapterView').classList.add('hidden');
             document.getElementById('navigationControls').classList.add('hidden');
             document.getElementById('mainNav').classList.add('hidden');
+            document.getElementById('marqueeBar').classList.add('hidden');
             document.getElementById('mainFooter').classList.add('hidden');
-            
             document.getElementById('pdfViewerMode').classList.remove('hidden');
             document.getElementById('pdfFrame').src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
         }
@@ -197,20 +234,17 @@
         function backToChapters() {
             document.getElementById('pdfViewerMode').classList.add('hidden');
             document.getElementById('mainNav').classList.remove('hidden');
+            document.getElementById('marqueeBar').classList.remove('hidden');
             document.getElementById('mainFooter').classList.remove('hidden');
             showChapters(activeSubject);
         }
 
-      function downloadPdfDirectly() {
-    // This tells Supabase to send the file as a download instead of a preview
-    const forceDownloadUrl = currentPdfUrl + (currentPdfUrl.includes('?') ? '&' : '?') + 'download=';
-    
-    // This opens the download link in a way the phone can grab it
-    window.location.href = forceDownloadUrl;
-}
+        function downloadPdfDirectly() {
+            const forceDownloadUrl = currentPdfUrl + (currentPdfUrl.includes('?') ? '&' : '?') + 'download=';
+            window.location.href = forceDownloadUrl;
+        }
 
-        // Admin Auth
-        function checkSession() { if (localStorage.getItem('agc_admin') === 'true') { isAdmin = true; document.body.classList.add('is-admin'); document.getElementById('adminAuthBtn').innerText = 'Upload +'; } }
+        function checkSession() { if (localStorage.getItem('agc_admin') === 'true') { isAdmin = true; document.body.classList.add('is-admin'); document.getElementById('adminAuthBtn').innerText = 'Dashboard +'; } }
         function checkAdmin() { isAdmin ? document.getElementById('uploadModal').classList.remove('hidden') : document.getElementById('loginModal').classList.remove('hidden'); }
         function attemptLogin() { if(document.getElementById('adminPassInput').value === ADMIN_PASS) { localStorage.setItem('agc_admin', 'true'); location.reload(); } else alert("Denied"); }
         function handleLogout() { localStorage.removeItem('agc_admin'); location.reload(); }
@@ -223,7 +257,7 @@
             const title = document.getElementById('uploadChapter').value;
             if(!file || !title) return alert("Missing info");
             const btn = document.getElementById('uploadBtn');
-            btn.innerText = "Working..."; btn.disabled = true;
+            btn.innerText = "Publishing..."; btn.disabled = true;
             
             const fName = `${Date.now()}_${file.name}`;
             await _supabase.storage.from('notes').upload(fName, file);
@@ -240,4 +274,3 @@
     </script>
 </body>
 </html>
-
