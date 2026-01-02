@@ -27,7 +27,6 @@
             width: 100%;
             background: #2563eb;
             color: white;
-            white-space: nowrap;
         }
 
         marquee { 
@@ -36,6 +35,8 @@
             font-weight: 700;
             padding: 12px 0;
             font-size: 0.95rem;
+            /* CRITICAL FIX: This preserves multiple spaces typed by the admin */
+            white-space: pre; 
         }
 
         .subject-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -128,7 +129,7 @@
             <h3 class="text-2xl font-extrabold mb-6">Dashboard</h3>
             
             <div class="mb-8 p-5 bg-blue-50 rounded-3xl border border-blue-100">
-                <p class="text-xs font-bold text-blue-600 uppercase mb-3">Update Marquee</p>
+                <p class="text-xs font-bold text-blue-600 uppercase mb-3">Update Marquee (Supports spaces)</p>
                 <input type="text" id="marqueeInput" placeholder="Enter notice..." class="w-full p-3 rounded-xl border-none ring-1 ring-slate-200 mb-3 text-sm">
                 <button onclick="updateAnnouncement()" id="marqueeBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm shadow-md">Update Text</button>
             </div>
@@ -156,7 +157,7 @@
     <script>
         const SUPABASE_URL = 'https://tyxeltkpandqqyfmimmk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eGVsdGtwYW5kcXF5Zm1pbW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxODMxMTUsImV4cCI6MjA4Mjc1OTExNX0.fGvS-0LK16POTVkfZbMsmfiAo-_WZqLZU9Lurh-a4gU';
-        const ADMIN_PASS = 'hEm@nt123';
+        const ADMIN_PASS = 'HeM@n!123';
 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let allNotes = [];
