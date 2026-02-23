@@ -238,7 +238,6 @@
 
         let allNotes = [], isAdmin = false, activeSubject = "", activeSem = "", currentPdfUrl = "", currentPdfTitle = "";
 
-        // Navigation Sync Logic
         window.addEventListener('popstate', (event) => {
             const state = event.state;
             if (!state || state.view === 'home') renderHome();
@@ -263,7 +262,6 @@
         function renderSubjects(sem, push) {
             activeSem = sem;
             if (push) history.pushState({ view: 'subjects', sem }, "");
-
             document.getElementById('semesterSelection').classList.add('hidden');
             document.getElementById('chapterView').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.add('hidden');
@@ -283,10 +281,8 @@
         }
 
         function renderChapters(sub, sem, push) {
-            activeSubject = sub;
-            activeSem = sem;
+            activeSubject = sub; activeSem = sem;
             if (push) history.pushState({ view: 'chapters', sub, sem }, "");
-
             document.getElementById('subjectView').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.add('hidden');
             document.getElementById('chapterView').classList.remove('hidden');
@@ -311,10 +307,8 @@
         }
 
         function renderPdf(url, title, push) {
-            currentPdfUrl = url;
-            currentPdfTitle = title;
+            currentPdfUrl = url; currentPdfTitle = title;
             if (push) history.pushState({ view: 'pdf', url, title }, "");
-
             document.getElementById('chapterView').classList.add('hidden');
             document.getElementById('navigationControls').classList.add('hidden');
             document.getElementById('mainNav').classList.add('hidden');
@@ -325,13 +319,10 @@
         }
 
         async function renameNote(id, oldTitle) {
-            const newTitle = prompt("Enter new name for the note:", oldTitle);
+            const newTitle = prompt("Enter new name:", oldTitle);
             if (newTitle && newTitle !== oldTitle) {
-                const { error } = await _supabase.from('notes_list').update({ title: newTitle }).eq('id', id);
-                if (!error) {
-                    allNotes = allNotes.map(n => n.id === id ? { ...n, title: newTitle } : n);
-                    renderChapters(activeSubject, activeSem, false);
-                } else alert("Error renaming");
+                await _supabase.from('notes_list').update({ title: newTitle }).eq('id', id);
+                location.reload();
             }
         }
 
@@ -341,21 +332,28 @@
                 const blob = await res.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = `${currentPdfTitle}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                a.href = url; a.download = `${currentPdfTitle}.pdf`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
             } catch (e) { window.open(currentPdfUrl, '_blank'); }
+        }
+
+        async function updateVisitCount() {
+            try {
+                const { data } = await _supabase.from('site_stats').select('views').eq('id', 1).single();
+                const newCount = (data?.views || 0) + 1;
+                await _supabase.from('site_stats').update({ views: newCount }).eq('id', 1);
+                document.getElementById('viewCounter').innerText = `Total Visits: ${newCount}`;
+            } catch (e) { document.getElementById('viewCounter').innerText = "Total Visits: --"; }
         }
 
         async function loadData() {
             const { data } = await _supabase.from('notes_list').select('*');
             allNotes = data || [];
             const { data: ann } = await _supabase.from('announcements').select('content').eq('id', 1).single();
-            if (ann) document.getElementById('updateMarquee').innerText = ann.content;
+            if (ann) { document.getElementById('updateMarquee').innerText = ann.content; document.getElementById('marqueeInput').value = ann.content; }
             renderHome();
             updateUploadSubjects();
+            updateVisitCount();
         }
 
         function showSubjects() { history.pushState({ view: 'home' }, ""); renderHome(); }
