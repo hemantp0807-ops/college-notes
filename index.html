@@ -111,7 +111,7 @@
     </nav>
 
     <div id="marqueeBar">
-        <marquee id="updateMarquee" behavior="scroll" direction="left" scrollamount="6">Loading latest updates...
+        <marquee id="updateMarquee" behavior="scroll" direction="left" scrollamount="6">Welcome to AGC BCA Portal...
         </marquee>
     </div>
 
@@ -190,12 +190,14 @@
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-extrabold mb-6 text-center">Dashboard</h3>
             <div class="mb-6 p-4 bg-blue-50 rounded-2xl">
-                <input type="text" id="marqueeInput" placeholder="Update Marquee..."
-                    class="w-full p-3 rounded-xl mb-2 text-sm">
-                <button onclick="updateAnnouncement()"
-                    class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-bold">Update Text</button>
+                <label class="text-[10px] font-bold text-blue-600 uppercase ml-1">Marquee Notice</label>
+                <input type="text" id="marqueeInput" placeholder="Enter notice text..."
+                    class="w-full p-3 rounded-xl mb-2 text-sm mt-1">
+                <button onclick="updateAnnouncement()" id="marqueeBtn"
+                    class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-bold">Update Marquee</button>
             </div>
             <div class="space-y-4">
+                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Upload Note</label>
                 <select id="uploadSemester" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                     <option value="1">Semester 1</option>
                     <option value="2">Semester 2</option>
@@ -214,8 +216,8 @@
                         class="fas fa-file-pdf text-2xl mb-2"></i><span id="fileName" class="text-xs">Select
                         PDF</span></label>
                 <button onclick="handleUpload()" id="uploadBtn"
-                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish</button>
-                <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-sm">Close</button>
+                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish Note</button>
+                <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-sm">Close Dashboard</button>
             </div>
         </div>
     </div>
@@ -227,9 +229,8 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allNotes = [], isAdmin = false, activeSubject = "", activeSem = "", currentPdfUrl = "";
-        let currentScreen = "home"; // home, subjects, chapters, pdf
+        let currentScreen = "home";
 
-        // Device Back Button Handling
         window.onpopstate = function () { handleBackNavigation(); };
 
         function updateHistory(screen) {
@@ -248,9 +249,27 @@
                 const { data: notes } = await _supabase.from('notes_list').select('*');
                 allNotes = notes || [];
                 const { data: ann } = await _supabase.from('announcements').select('content').eq('id', 1).single();
-                if (ann) document.getElementById('updateMarquee').innerText = ann.content;
+                if (ann) {
+                    document.getElementById('updateMarquee').innerText = ann.content;
+                    document.getElementById('marqueeInput').value = ann.content;
+                }
             } catch (e) { }
             showSubjects();
+        }
+
+        async function updateAnnouncement() {
+            const newText = document.getElementById('marqueeInput').value;
+            if (!newText) return;
+            const btn = document.getElementById('marqueeBtn');
+            btn.innerText = "Updating...";
+            const { error } = await _supabase.from('announcements').update({ content: newText }).eq('id', 1);
+            if (!error) {
+                document.getElementById('updateMarquee').innerText = newText;
+                alert("Marquee updated successfully!");
+            } else {
+                alert("Error: " + error.message);
+            }
+            btn.innerText = "Update Marquee";
         }
 
         async function updateVisitCount() {
@@ -366,7 +385,7 @@
                 const { data } = _supabase.storage.from('notes').getPublicUrl(fName);
                 await _supabase.from('notes_list').insert([{ title, subject, file_url: data.publicUrl, semester }]);
                 location.reload();
-            } catch (e) { alert("Failed"); btn.innerText = "Publish"; }
+            } catch (e) { alert("Failed"); btn.innerText = "Publish Note"; }
         }
 
         async function deleteNote(id) {
