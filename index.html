@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,48 +10,89 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #fcfdfe; 
-            display: flex; 
-            flex-direction: column; 
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #fcfdfe;
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
-        
-        #marqueeBar { 
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #marqueeBar {
             width: 100%;
             background: #2563eb;
             color: white;
         }
 
-        marquee { 
+        marquee {
             display: block;
             width: 100%;
             font-weight: 700;
             padding: 12px 0;
             font-size: 0.95rem;
-            white-space: pre; 
+            white-space: pre;
         }
 
-        .subject-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .subject-card:hover { transform: translateY(-10px) scale(1.02); }
-        
-        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        main { flex: 1; }
-        .admin-only { display: none !important; }
-        body.is-admin .admin-only { display: inline-flex !important; }
-        
-        #pdfFrame { width: 100%; height: calc(100vh - 160px); border-radius: 24px; border: 1px solid #e2e8f0; background: white; }
+        .subject-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .subject-card:hover {
+            transform: translateY(-10px) scale(1.02);
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.4s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .admin-only {
+            display: none !important;
+        }
+
+        body.is-admin .admin-only {
+            display: inline-flex !important;
+        }
+
+        #pdfFrame {
+            width: 100%;
+            height: calc(100vh - 160px);
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
     </style>
 </head>
+
 <body class="text-slate-900">
 
     <nav id="mainNav" class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
@@ -61,33 +103,49 @@
             <h1 class="text-xl font-extrabold tracking-tight uppercase">AGC BCA</h1>
         </div>
         <div class="flex gap-2">
-            <button id="logoutBtn" onclick="handleLogout()" class="admin-only bg-red-50 text-red-600 px-3 py-2 rounded-xl font-bold text-sm hover:bg-red-100 transition-all">
-                Logout
-            </button>
-            <button id="adminAuthBtn" onclick="checkAdmin()" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md active:scale-95">
-                Admin
-            </button>
+            <button id="logoutBtn" onclick="handleLogout()"
+                class="admin-only bg-red-50 text-red-600 px-3 py-2 rounded-xl font-bold text-sm hover:bg-red-100 transition-all">Logout</button>
+            <button id="adminAuthBtn" onclick="checkAdmin()"
+                class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md active:scale-95">Admin</button>
         </div>
     </nav>
 
     <div id="marqueeBar">
-        <marquee id="updateMarquee" behavior="scroll" direction="left" scrollamount="6">
-            Loading latest updates...
+        <marquee id="updateMarquee" behavior="scroll" direction="left" scrollamount="6">Loading latest updates...
         </marquee>
     </div>
 
     <main class="max-w-6xl mx-auto px-6 py-8 w-full">
         <div id="navigationControls" class="mb-8 flex items-center justify-between hidden">
-            <button onclick="showSubjects()" class="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">
+            <button onclick="showSubjects()"
+                class="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
             <div id="breadcrumb" class="text-slate-400 font-semibold text-xs">
-                Subjects <i class="fas fa-chevron-right mx-1 text-[8px]"></i> 
+                Subjects <i class="fas fa-chevron-right mx-1 text-[8px]"></i>
                 <span id="currentSubjectName" class="text-slate-900"></span>
             </div>
         </div>
 
-        <div id="subjectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up"></div>
+        <div id="semesterContainers">
+            <div id="sem1Section" class="mb-12">
+                <h2 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
+                    <span
+                        class="w-10 h-10 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg">1</span>
+                    Semester I
+                </h2>
+                <div id="gridSem1" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up"></div>
+            </div>
+
+            <div id="sem2Section" class="mb-12">
+                <h2 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
+                    <span
+                        class="w-10 h-10 bg-purple-600 text-white rounded-2xl flex items-center justify-center shadow-lg">2</span>
+                    Semester II
+                </h2>
+                <div id="gridSem2" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up"></div>
+            </div>
+        </div>
 
         <div id="chapterView" class="hidden animate-slide-up">
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
@@ -99,10 +157,12 @@
 
         <div id="pdfViewerMode" class="hidden animate-slide-up">
             <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-                <button onclick="backToChapters()" class="w-full sm:w-auto flex items-center justify-center gap-2 text-slate-600 font-bold bg-slate-100 px-6 py-3 rounded-xl hover:bg-slate-200 transition">
+                <button onclick="backToChapters()"
+                    class="w-full sm:w-auto flex items-center justify-center gap-2 text-slate-600 font-bold bg-slate-100 px-6 py-3 rounded-xl hover:bg-slate-200 transition">
                     <i class="fas fa-arrow-left"></i> Back
                 </button>
-                <button id="directDownloadBtn" onclick="downloadPdfDirectly()" class="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2">
+                <button id="directDownloadBtn" onclick="downloadPdfDirectly()"
+                    class="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2">
                     <i class="fas fa-download"></i> Download
                 </button>
             </div>
@@ -111,43 +171,57 @@
     </main>
 
     <footer id="mainFooter" class="py-8 text-center border-t border-slate-100 mt-12">
-        <p class="text-slate-400 font-medium text-sm">Developed with <i class="fas fa-heart text-red-500"></i> and AI by Hemant Patil</p>
+        <p class="text-slate-400 font-medium text-sm">Developed with <i class="fas fa-heart text-red-500"></i> and AI by
+            Hemant Patil</p>
+        <p id="viewCounter" class="text-blue-500 font-bold text-xs mt-2 uppercase tracking-widest">Views: Loading...</p>
     </footer>
 
-    <div id="loginModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
+    <div id="loginModal"
+        class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
         <div class="bg-white w-full max-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
             <h3 class="text-2xl font-extrabold mb-6">Admin Login</h3>
-            <input type="password" id="adminPassInput" placeholder="Password" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500 mb-4 text-center">
-            <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">Login</button>
+            <input type="password" id="adminPassInput" placeholder="Password"
+                class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-blue-500 mb-4 text-center">
+            <button onclick="attemptLogin()"
+                class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">Login</button>
             <button onclick="closeLoginModal()" class="mt-4 text-slate-400 text-sm font-bold">Cancel</button>
         </div>
     </div>
 
-    <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
+    <div id="uploadModal"
+        class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-extrabold mb-6">Dashboard</h3>
-            
             <div class="mb-8 p-5 bg-blue-50 rounded-3xl border border-blue-100">
-                <p class="text-xs font-bold text-blue-600 uppercase mb-3">Update Marquee (Supports spaces)</p>
-                <input type="text" id="marqueeInput" placeholder="Enter notice..." class="w-full p-3 rounded-xl border-none ring-1 ring-slate-200 mb-3 text-sm">
-                <button onclick="updateAnnouncement()" id="marqueeBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm shadow-md">Update Text</button>
+                <p class="text-xs font-bold text-blue-600 uppercase mb-3">Update Marquee</p>
+                <input type="text" id="marqueeInput" placeholder="Enter notice..."
+                    class="w-full p-3 rounded-xl border-none ring-1 ring-slate-200 mb-3 text-sm">
+                <button onclick="updateAnnouncement()" id="marqueeBtn"
+                    class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm shadow-md">Update
+                    Text</button>
             </div>
-
             <div class="space-y-4">
                 <p class="text-xs font-bold text-slate-400 uppercase">Upload PDF</p>
+                <select id="uploadSemester" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 text-sm">
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                </select>
                 <select id="uploadSubject" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 text-sm">
                     <option value="C programming">C programming</option>
                     <option value="Web Designing">Web Designing</option>
                     <option value="Graph Theory">Graph Theory</option>
                     <option value="Basic of Electronics">Basic of Electronics</option>
                 </select>
-                <input type="text" id="uploadChapter" placeholder="Chapter Title" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 text-sm">
+                <input type="text" id="uploadChapter" placeholder="Chapter Title"
+                    class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 text-sm">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf">
-                <label for="fileInput" class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 cursor-pointer hover:bg-blue-50 transition-all">
+                <label for="fileInput"
+                    class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 cursor-pointer hover:bg-blue-50 transition-all">
                     <i class="fas fa-file-pdf text-2xl text-blue-500 mb-2"></i>
                     <span id="fileName" class="text-slate-500 text-xs">Select PDF File</span>
                 </label>
-                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish Note</button>
+                <button onclick="handleUpload()" id="uploadBtn"
+                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish Note</button>
                 <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-sm mt-2">Close</button>
             </div>
         </div>
@@ -162,31 +236,38 @@
         let allNotes = [];
         let isAdmin = false;
         let activeSubject = "";
+        let activeSem = "";
         let currentPdfUrl = "";
 
         async function loadData() {
             try {
                 const { data: notes } = await _supabase.from('notes_list').select('*');
                 allNotes = notes || [];
-
                 const { data: ann } = await _supabase.from('announcements').select('content').eq('id', 1).single();
-                if(ann) {
+                if (ann) {
                     document.getElementById('updateMarquee').innerText = ann.content;
                     document.getElementById('marqueeInput').value = ann.content;
                 }
             } catch (e) { console.log("Init error:", e); }
-            
             showSubjects();
+        }
+
+        async function updateVisitCount() {
+            try {
+                const { data } = await _supabase.from('site_stats').select('views').eq('id', 1).single();
+                const newCount = (data?.views || 0) + 1;
+                await _supabase.from('site_stats').update({ views: newCount }).eq('id', 1);
+                document.getElementById('viewCounter').innerText = `Total Visits: ${newCount}`;
+            } catch (e) { console.error("Counter error:", e); }
         }
 
         async function updateAnnouncement() {
             const newText = document.getElementById('marqueeInput').value;
-            if(!newText) return;
+            if (!newText) return;
             const btn = document.getElementById('marqueeBtn');
             btn.innerText = "Updating...";
-            
             const { error } = await _supabase.from('announcements').update({ content: newText }).eq('id', 1);
-            if(!error) {
+            if (!error) {
                 document.getElementById('updateMarquee').innerText = newText;
                 alert("Updated successfully!");
             }
@@ -194,43 +275,43 @@
         }
 
         function showSubjects() {
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
             document.getElementById('navigationControls').classList.add('hidden');
             document.getElementById('chapterView').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.add('hidden');
             document.getElementById('mainNav').classList.remove('hidden');
             document.getElementById('marqueeBar').style.display = 'block';
             document.getElementById('mainFooter').classList.remove('hidden');
-            const grid = document.getElementById('subjectGrid');
-            grid.classList.remove('hidden');
-            
+            document.getElementById('semesterContainers').classList.remove('hidden');
             const meta = [
                 { name: 'C programming', icon: 'fa-code', color: 'blue' },
                 { name: 'Web Designing', icon: 'fa-pencil-ruler', color: 'purple' },
                 { name: 'Graph Theory', icon: 'fa-project-diagram', color: 'emerald' },
                 { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }
             ];
-
-            grid.innerHTML = meta.map(s => {
-                const count = allNotes.filter(n => n.subject === s.name).length;
-                return `
-                <div onclick="showChapters('${s.name}')" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer shadow-sm border border-white/50">
-                    <div class="w-16 h-16 bg-${s.color}-100 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6"><i class="fas ${s.icon}"></i></div>
-                    <h3 class="text-lg font-extrabold text-slate-800 mb-1">${s.name}</h3>
-                    <div class="text-slate-400 text-xs font-semibold">${count} Chapters Available</div>
-                </div>`;
-            }).join('');
+            const renderGrid = (sem) => {
+                return meta.map(s => {
+                    const count = allNotes.filter(n => n.subject === s.name && String(n.semester) === String(sem)).length;
+                    return `<div onclick="showChapters('${s.name}', '${sem}')" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer shadow-sm border border-white/50">
+                        <div class="w-16 h-16 bg-${s.color}-100 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6"><i class="fas ${s.icon}"></i></div>
+                        <h3 class="text-lg font-extrabold text-slate-800 mb-1">${s.name}</h3>
+                        <div class="text-slate-400 text-xs font-semibold">${count} Chapters Available</div>
+                    </div>`;
+                }).join('');
+            };
+            document.getElementById('gridSem1').innerHTML = renderGrid("1");
+            document.getElementById('gridSem2').innerHTML = renderGrid("2");
         }
 
-        function showChapters(sub) {
+        function showChapters(sub, sem) {
             activeSubject = sub;
-            document.getElementById('subjectGrid').classList.add('hidden');
+            activeSem = sem;
+            document.getElementById('semesterContainers').classList.add('hidden');
             document.getElementById('navigationControls').classList.remove('hidden');
-            document.getElementById('currentSubjectName').innerText = sub;
+            document.getElementById('currentSubjectName').innerText = `${sub} (Sem ${sem})`;
             document.getElementById('viewTitle').innerText = sub;
             document.getElementById('chapterView').classList.remove('hidden');
-
-            const filtered = allNotes.filter(n => n.subject === sub).sort((a,b) => a.title.localeCompare(b.title, undefined, {numeric: true}));
+            const filtered = allNotes.filter(n => n.subject === sub && String(n.semester) === String(sem)).sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
             document.getElementById('chapterList').innerHTML = filtered.map(n => `
                 <div class="glass p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-center border border-slate-100">
                     <div class="flex items-center gap-4 w-full sm:w-auto">
@@ -244,24 +325,18 @@
                         </div>
                     </div>
                     <button onclick="openPdfMode('${n.file_url}', '${n.title}')" class="mt-4 sm:mt-0 w-full sm:w-auto bg-slate-900 text-white px-6 py-2 rounded-xl font-bold text-xs">Open</button>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
 
         async function renameNote(id, oldTitle) {
-            if (!isAdmin) return; // Strict JS check
-            
-            const newTitle = prompt("Enter new title for the note:", oldTitle);
-            if (newTitle === null || newTitle.trim() === "" || newTitle === oldTitle) return;
-
+            if (!isAdmin) return;
+            const newTitle = prompt("Enter new title:", oldTitle);
+            if (!newTitle || newTitle === oldTitle) return;
             try {
-                const { error } = await _supabase.from('notes_list').update({ title: newTitle.trim() }).eq('id', id);
-                if (error) throw error;
+                await _supabase.from('notes_list').update({ title: newTitle.trim() }).eq('id', id);
                 await loadData();
-                showChapters(activeSubject);
-            } catch (e) {
-                alert("Rename failed");
-            }
+                showChapters(activeSubject, activeSem);
+            } catch (e) { alert("Rename failed"); }
         }
 
         function openPdfMode(url, title) {
@@ -280,24 +355,13 @@
             document.getElementById('mainNav').classList.remove('hidden');
             document.getElementById('marqueeBar').style.display = 'block';
             document.getElementById('mainFooter').classList.remove('hidden');
-            showChapters(activeSubject);
+            showChapters(activeSubject, activeSem);
         }
 
-        function downloadPdfDirectly() {
-            const forceDownloadUrl = currentPdfUrl + (currentPdfUrl.includes('?') ? '&' : '?') + 'download=';
-            window.location.href = forceDownloadUrl;
-        }
-
-        function checkSession() { 
-            if (localStorage.getItem('agc_admin') === 'true') { 
-                isAdmin = true; 
-                document.body.classList.add('is-admin'); 
-                document.getElementById('adminAuthBtn').innerText = 'Dashboard'; 
-            } 
-        }
-
+        function downloadPdfDirectly() { window.location.href = currentPdfUrl + (currentPdfUrl.includes('?') ? '&' : '?') + 'download='; }
+        function checkSession() { if (localStorage.getItem('agc_admin') === 'true') { isAdmin = true; document.body.classList.add('is-admin'); document.getElementById('adminAuthBtn').innerText = 'Dashboard'; } }
         function checkAdmin() { isAdmin ? document.getElementById('uploadModal').classList.remove('hidden') : document.getElementById('loginModal').classList.remove('hidden'); }
-        function attemptLogin() { if(document.getElementById('adminPassInput').value === ADMIN_PASS) { localStorage.setItem('agc_admin', 'true'); location.reload(); } else alert("Access Denied"); }
+        function attemptLogin() { if (document.getElementById('adminPassInput').value === ADMIN_PASS) { localStorage.setItem('agc_admin', 'true'); location.reload(); } else alert("Access Denied"); }
         function handleLogout() { localStorage.removeItem('agc_admin'); location.reload(); }
         function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
         function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
@@ -306,31 +370,34 @@
             const file = document.getElementById('fileInput').files[0];
             const subject = document.getElementById('uploadSubject').value;
             const title = document.getElementById('uploadChapter').value;
-            if(!file || !title) return alert("All fields required");
+            const semester = document.getElementById('uploadSemester').value;
+            if (!file || !title) return alert("All fields required");
             const btn = document.getElementById('uploadBtn');
             btn.innerText = "Uploading..."; btn.disabled = true;
-            
             try {
                 const fName = `${Date.now()}_${file.name}`;
                 await _supabase.storage.from('notes').upload(fName, file);
                 const { data } = _supabase.storage.from('notes').getPublicUrl(fName);
-                await _supabase.from('notes_list').insert([{ title: title, subject: subject, file_url: data.publicUrl }]);
+                await _supabase.from('notes_list').insert([{ title, subject, file_url: data.publicUrl, semester }]);
                 location.reload();
             } catch (e) { alert("Upload failed"); btn.innerText = "Publish Note"; btn.disabled = false; }
         }
 
-        async function deleteNote(id) { 
-            if(!isAdmin) return;
-            if(confirm("Permanently delete this note?")) { 
-                await _supabase.from('notes_list').delete().eq('id', id); 
-                loadData(); 
-            } 
+        async function deleteNote(id) {
+            if (!isAdmin) return;
+            if (confirm("Permanently delete this note?")) {
+                await _supabase.from('notes_list').delete().eq('id', id);
+                await loadData();
+                showChapters(activeSubject, activeSem);
+            }
         }
 
-        document.getElementById('fileInput').onchange = e => { if(e.target.files[0]) document.getElementById('fileName').innerText = e.target.files[0].name; };
+        document.getElementById('fileInput').onchange = e => { if (e.target.files[0]) document.getElementById('fileName').innerText = e.target.files[0].name; };
 
         checkSession();
         loadData();
+        updateVisitCount();
     </script>
 </body>
+
 </html>
