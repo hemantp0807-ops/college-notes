@@ -173,18 +173,6 @@
         <p id="viewCounter" class="text-blue-500 font-bold text-xs mt-2 uppercase tracking-widest">Views: Loading...</p>
     </footer>
 
-    <div id="loginModal"
-        class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
-            <h3 class="text-2xl font-extrabold mb-6">Admin Login</h3>
-            <input type="password" id="adminPassInput"
-                class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 outline-none mb-4 text-center">
-            <button onclick="attemptLogin()"
-                class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Login</button>
-            <button onclick="closeLoginModal()" class="mt-4 text-slate-400 text-sm font-bold">Cancel</button>
-        </div>
-    </div>
-
     <div id="uploadModal"
         class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -198,16 +186,12 @@
             </div>
             <div class="space-y-4">
                 <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Upload Note</label>
-                <select id="uploadSemester" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
+                <select id="uploadSemester" onchange="updateUploadSubjects()"
+                    class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                     <option value="1">Semester 1</option>
                     <option value="2">Semester 2</option>
                 </select>
-                <select id="uploadSubject" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
-                    <option value="C programming">C programming</option>
-                    <option value="Web Designing">Web Designing</option>
-                    <option value="Graph Theory">Graph Theory</option>
-                    <option value="Basic of Electronics">Basic of Electronics</option>
-                </select>
+                <select id="uploadSubject" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200"></select>
                 <input type="text" id="uploadChapter" placeholder="Chapter Title"
                     class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf">
@@ -222,21 +206,44 @@
         </div>
     </div>
 
+    <div id="loginModal"
+        class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
+            <h3 class="text-2xl font-extrabold mb-6">Admin Login</h3>
+            <input type="password" id="adminPassInput"
+                class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 outline-none mb-4 text-center">
+            <button onclick="attemptLogin()"
+                class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Login</button>
+            <button onclick="closeLoginModal()" class="mt-4 text-slate-400 text-sm font-bold">Cancel</button>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://tyxeltkpandqqyfmimmk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eGVsdGtwYW5kcXF5Zm1pbW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxODMxMTUsImV4cCI6MjA4Mjc1OTExNX0.fGvS-0LK16POTVkfZbMsmfiAo-_WZqLZU9Lurh-a4gU';
         const ADMIN_PASS = 'HeM@n!123';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        const subjectsData = {
+            "1": [
+                { name: 'C programming', icon: 'fa-code', color: 'blue' },
+                { name: 'Web Designing', icon: 'fa-pencil-ruler', color: 'purple' },
+                { name: 'Graph Theory', icon: 'fa-project-diagram', color: 'emerald' },
+                { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }
+            ],
+            "2": [
+                { name: 'Advanced C Programming', icon: 'fa-terminal', color: 'blue' },
+                { name: 'DBMS', icon: 'fa-database', color: 'purple' },
+                { name: 'Mathematics', icon: 'fa-calculator', color: 'emerald' },
+                { name: 'Electronics', icon: 'fa-bolt', color: 'orange' }
+            ]
+        };
+
         let allNotes = [], isAdmin = false, activeSubject = "", activeSem = "", currentPdfUrl = "";
         let currentScreen = "home";
 
         window.onpopstate = function () { handleBackNavigation(); };
-
-        function updateHistory(screen) {
-            currentScreen = screen;
-            history.pushState({ screen: screen }, "");
-        }
+        function updateHistory(screen) { currentScreen = screen; history.pushState({ screen: screen }, ""); }
 
         function handleBackNavigation() {
             if (currentScreen === "pdf") { backToChapters(); }
@@ -249,12 +256,16 @@
                 const { data: notes } = await _supabase.from('notes_list').select('*');
                 allNotes = notes || [];
                 const { data: ann } = await _supabase.from('announcements').select('content').eq('id', 1).single();
-                if (ann) {
-                    document.getElementById('updateMarquee').innerText = ann.content;
-                    document.getElementById('marqueeInput').value = ann.content;
-                }
+                if (ann) { document.getElementById('updateMarquee').innerText = ann.content; document.getElementById('marqueeInput').value = ann.content; }
             } catch (e) { }
             showSubjects();
+            updateUploadSubjects();
+        }
+
+        function updateUploadSubjects() {
+            const sem = document.getElementById('uploadSemester').value;
+            const subSelect = document.getElementById('uploadSubject');
+            subSelect.innerHTML = subjectsData[sem].map(s => `<option value="${s.name}">${s.name}</option>`).join('');
         }
 
         async function updateAnnouncement() {
@@ -263,12 +274,7 @@
             const btn = document.getElementById('marqueeBtn');
             btn.innerText = "Updating...";
             const { error } = await _supabase.from('announcements').update({ content: newText }).eq('id', 1);
-            if (!error) {
-                document.getElementById('updateMarquee').innerText = newText;
-                alert("Marquee updated successfully!");
-            } else {
-                alert("Error: " + error.message);
-            }
+            if (!error) { document.getElementById('updateMarquee').innerText = newText; alert("Marquee updated!"); }
             btn.innerText = "Update Marquee";
         }
 
@@ -301,14 +307,7 @@
             document.getElementById('subjectView').classList.remove('hidden');
             document.getElementById('navigationControls').classList.remove('hidden');
             document.getElementById('selectedSemTitle').innerText = `Semester ${sem}`;
-
-            const meta = [
-                { name: 'C programming', icon: 'fa-code', color: 'blue' },
-                { name: 'Web Designing', icon: 'fa-pencil-ruler', color: 'purple' },
-                { name: 'Graph Theory', icon: 'fa-project-diagram', color: 'emerald' },
-                { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }
-            ];
-
+            const meta = subjectsData[sem];
             document.getElementById('subjectGrid').innerHTML = meta.map(s => {
                 const count = allNotes.filter(n => n.subject === s.name && String(n.semester) === String(sem)).length;
                 return `<div onclick="showChapters('${s.name}', '${sem}')" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer border border-white/50">
@@ -325,7 +324,6 @@
             document.getElementById('subjectView').classList.add('hidden');
             document.getElementById('chapterView').classList.remove('hidden');
             document.getElementById('viewTitle').innerText = sub;
-
             const filtered = allNotes.filter(n => n.subject === sub && String(n.semester) === String(sem)).sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
             document.getElementById('chapterList').innerHTML = filtered.map(n => `
                 <div class="glass p-5 rounded-2xl flex justify-between items-center border border-slate-100">
@@ -388,10 +386,7 @@
             } catch (e) { alert("Failed"); btn.innerText = "Publish Note"; }
         }
 
-        async function deleteNote(id) {
-            if (confirm("Delete?")) { await _supabase.from('notes_list').delete().eq('id', id); loadData(); showChapters(activeSubject, activeSem); }
-        }
-
+        async function deleteNote(id) { if (confirm("Delete?")) { await _supabase.from('notes_list').delete().eq('id', id); loadData(); showChapters(activeSubject, activeSem); } }
         document.getElementById('fileInput').onchange = e => { if (e.target.files[0]) document.getElementById('fileName').innerText = e.target.files[0].name; };
 
         history.pushState({ screen: "home" }, "");
