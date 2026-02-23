@@ -119,32 +119,35 @@
         <div id="navigationControls" class="mb-8 flex items-center justify-between hidden">
             <button onclick="showSubjects()"
                 class="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">
-                <i class="fas fa-arrow-left"></i> Back
+                <i class="fas fa-arrow-left"></i> Back to Semesters
             </button>
-            <div id="breadcrumb" class="text-slate-400 font-semibold text-xs">
-                Subjects <i class="fas fa-chevron-right mx-1 text-[8px]"></i>
-                <span id="currentSubjectName" class="text-slate-900"></span>
+        </div>
+
+        <div id="semesterSelection" class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12 animate-slide-up">
+            <div onclick="openSemester('1')"
+                class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-blue-100 flex flex-col items-center text-center shadow-xl hover:bg-blue-50">
+                <div
+                    class="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-lg">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-800">Semester I</h2>
+                <p class="text-slate-500 mt-2 font-semibold">View Subjects & Notes</p>
+            </div>
+
+            <div onclick="openSemester('2')"
+                class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-purple-100 flex flex-col items-center text-center shadow-xl hover:bg-purple-50">
+                <div
+                    class="w-20 h-20 bg-purple-600 text-white rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-lg">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-800">Semester II</h2>
+                <p class="text-slate-500 mt-2 font-semibold">View Subjects & Notes</p>
             </div>
         </div>
 
-        <div id="semesterContainers">
-            <div id="sem1Section" class="mb-12">
-                <h2 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                    <span
-                        class="w-10 h-10 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg">1</span>
-                    Semester I
-                </h2>
-                <div id="gridSem1" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up"></div>
-            </div>
-
-            <div id="sem2Section" class="mb-12">
-                <h2 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                    <span
-                        class="w-10 h-10 bg-purple-600 text-white rounded-2xl flex items-center justify-center shadow-lg">2</span>
-                    Semester II
-                </h2>
-                <div id="gridSem2" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up"></div>
-            </div>
+        <div id="subjectView" class="hidden animate-slide-up">
+            <h2 id="selectedSemTitle" class="text-2xl font-black text-slate-800 mb-8 flex items-center gap-3"></h2>
+            <div id="subjectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
         </div>
 
         <div id="chapterView" class="hidden animate-slide-up">
@@ -261,57 +264,58 @@
             } catch (e) { console.error("Counter error:", e); }
         }
 
-        async function updateAnnouncement() {
-            const newText = document.getElementById('marqueeInput').value;
-            if (!newText) return;
-            const btn = document.getElementById('marqueeBtn');
-            btn.innerText = "Updating...";
-            const { error } = await _supabase.from('announcements').update({ content: newText }).eq('id', 1);
-            if (!error) {
-                document.getElementById('updateMarquee').innerText = newText;
-                alert("Updated successfully!");
-            }
-            btn.innerText = "Update Text";
-        }
-
         function showSubjects() {
             window.scrollTo(0, 0);
-            document.getElementById('navigationControls').classList.add('hidden');
+            document.getElementById('semesterSelection').classList.remove('hidden');
+            document.getElementById('subjectView').classList.add('hidden');
             document.getElementById('chapterView').classList.add('hidden');
+            document.getElementById('navigationControls').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.add('hidden');
             document.getElementById('mainNav').classList.remove('hidden');
             document.getElementById('marqueeBar').style.display = 'block';
             document.getElementById('mainFooter').classList.remove('hidden');
-            document.getElementById('semesterContainers').classList.remove('hidden');
+        }
+
+        function openSemester(sem) {
+            activeSem = sem;
+            document.getElementById('semesterSelection').classList.add('hidden');
+            document.getElementById('subjectView').classList.remove('hidden');
+            document.getElementById('navigationControls').classList.remove('hidden');
+
+            document.getElementById('selectedSemTitle').innerHTML = `
+                <span class="w-10 h-10 ${sem === '1' ? 'bg-blue-600' : 'bg-purple-600'} text-white rounded-xl flex items-center justify-center text-sm shadow-md">${sem}</span>
+                Semester ${sem === '1' ? 'I' : 'II'} Subjects
+            `;
+
             const meta = [
                 { name: 'C programming', icon: 'fa-code', color: 'blue' },
                 { name: 'Web Designing', icon: 'fa-pencil-ruler', color: 'purple' },
                 { name: 'Graph Theory', icon: 'fa-project-diagram', color: 'emerald' },
                 { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }
             ];
-            const renderGrid = (sem) => {
-                return meta.map(s => {
-                    const count = allNotes.filter(n => n.subject === s.name && String(n.semester) === String(sem)).length;
-                    return `<div onclick="showChapters('${s.name}', '${sem}')" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer shadow-sm border border-white/50">
-                        <div class="w-16 h-16 bg-${s.color}-100 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6"><i class="fas ${s.icon}"></i></div>
-                        <h3 class="text-lg font-extrabold text-slate-800 mb-1">${s.name}</h3>
-                        <div class="text-slate-400 text-xs font-semibold">${count} Chapters Available</div>
-                    </div>`;
-                }).join('');
-            };
-            document.getElementById('gridSem1').innerHTML = renderGrid("1");
-            document.getElementById('gridSem2').innerHTML = renderGrid("2");
+
+            const grid = document.getElementById('subjectGrid');
+            grid.innerHTML = meta.map(s => {
+                const count = allNotes.filter(n => n.subject === s.name && String(n.semester) === String(sem)).length;
+                return `
+                <div onclick="showChapters('${s.name}', '${sem}')" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer shadow-sm border border-white/50">
+                    <div class="w-16 h-16 bg-${s.color}-100 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6"><i class="fas ${s.icon}"></i></div>
+                    <h3 class="text-lg font-extrabold text-slate-800 mb-1">${s.name}</h3>
+                    <div class="text-slate-400 text-xs font-semibold">${count} Chapters Available</div>
+                </div>`;
+            }).join('');
         }
 
         function showChapters(sub, sem) {
             activeSubject = sub;
             activeSem = sem;
-            document.getElementById('semesterContainers').classList.add('hidden');
-            document.getElementById('navigationControls').classList.remove('hidden');
-            document.getElementById('currentSubjectName').innerText = `${sub} (Sem ${sem})`;
-            document.getElementById('viewTitle').innerText = sub;
+            document.getElementById('subjectView').classList.add('hidden');
             document.getElementById('chapterView').classList.remove('hidden');
-            const filtered = allNotes.filter(n => n.subject === sub && String(n.semester) === String(sem)).sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
+            document.getElementById('viewTitle').innerText = sub;
+
+            const filtered = allNotes.filter(n => n.subject === sub && String(n.semester) === String(sem))
+                .sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
+
             document.getElementById('chapterList').innerHTML = filtered.map(n => `
                 <div class="glass p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-center border border-slate-100">
                     <div class="flex items-center gap-4 w-full sm:w-auto">
@@ -326,6 +330,16 @@
                     </div>
                     <button onclick="openPdfMode('${n.file_url}', '${n.title}')" class="mt-4 sm:mt-0 w-full sm:w-auto bg-slate-900 text-white px-6 py-2 rounded-xl font-bold text-xs">Open</button>
                 </div>`).join('');
+        }
+
+        async function updateAnnouncement() {
+            const newText = document.getElementById('marqueeInput').value;
+            if (!newText) return;
+            const btn = document.getElementById('marqueeBtn');
+            btn.innerText = "Updating...";
+            const { error } = await _supabase.from('announcements').update({ content: newText }).eq('id', 1);
+            if (!error) { document.getElementById('updateMarquee').innerText = newText; alert("Updated!"); }
+            btn.innerText = "Update Text";
         }
 
         async function renameNote(id, oldTitle) {
@@ -355,6 +369,7 @@
             document.getElementById('mainNav').classList.remove('hidden');
             document.getElementById('marqueeBar').style.display = 'block';
             document.getElementById('mainFooter').classList.remove('hidden');
+            document.getElementById('navigationControls').classList.remove('hidden');
             showChapters(activeSubject, activeSem);
         }
 
@@ -385,7 +400,7 @@
 
         async function deleteNote(id) {
             if (!isAdmin) return;
-            if (confirm("Permanently delete this note?")) {
+            if (confirm("Permanently delete?")) {
                 await _supabase.from('notes_list').delete().eq('id', id);
                 await loadData();
                 showChapters(activeSubject, activeSem);
