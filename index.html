@@ -158,7 +158,7 @@
                     class="w-full sm:w-auto flex items-center justify-center gap-2 text-slate-600 font-bold bg-slate-100 px-6 py-3 rounded-xl">
                     <i class="fas fa-arrow-left"></i> Back
                 </button>
-                <button onclick="downloadPdfDirectly()"
+                <button onclick="downloadPdfWithProperName()"
                     class="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold">
                     <i class="fas fa-download"></i> Download
                 </button>
@@ -239,7 +239,7 @@
             ]
         };
 
-        let allNotes = [], isAdmin = false, activeSubject = "", activeSem = "", currentPdfUrl = "";
+        let allNotes = [], isAdmin = false, activeSubject = "", activeSem = "", currentPdfUrl = "", currentPdfTitle = "";
         let currentScreen = "home";
 
         window.onpopstate = function () { handleBackNavigation(); };
@@ -336,12 +336,13 @@
                             </div>
                         </div>
                     </div>
-                    <button onclick="openPdfMode('${n.file_url}')" class="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold text-xs">Open</button>
+                    <button onclick="openPdfMode('${n.file_url}', '${n.title}')" class="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold text-xs">Open</button>
                 </div>`).join('');
         }
 
-        function openPdfMode(url) {
+        function openPdfMode(url, title) {
             currentPdfUrl = url;
+            currentPdfTitle = title;
             updateHistory("pdf");
             document.getElementById('chapterView').classList.add('hidden');
             document.getElementById('navigationControls').classList.add('hidden');
@@ -361,7 +362,23 @@
             showChapters(activeSubject, activeSem);
         }
 
-        function downloadPdfDirectly() { window.location.href = currentPdfUrl; }
+        async function downloadPdfWithProperName() {
+            try {
+                const response = await fetch(currentPdfUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentPdfTitle}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (err) {
+                window.open(currentPdfUrl, '_blank');
+            }
+        }
+
         function checkSession() { if (localStorage.getItem('agc_admin') === 'true') { isAdmin = true; document.body.classList.add('is-admin'); document.getElementById('adminAuthBtn').innerText = 'Dashboard'; } }
         function checkAdmin() { isAdmin ? document.getElementById('uploadModal').classList.remove('hidden') : document.getElementById('loginModal').classList.remove('hidden'); }
         function attemptLogin() { if (document.getElementById('adminPassInput').value === ADMIN_PASS) { localStorage.setItem('agc_admin', 'true'); location.reload(); } else alert("Denied"); }
