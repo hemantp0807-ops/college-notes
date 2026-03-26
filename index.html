@@ -11,12 +11,23 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fcfdfe; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+        
+        /* Dark Mode Colors */
+        body.dark { background: #0f172a; color: #f1f5f9; }
+        body.dark .glass { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); }
+        body.dark .search-input { background: #1e293b; border-color: #334155; color: white; }
+        body.dark .bg-white { background-color: #1e293b; }
+        body.dark .text-slate-800 { color: #f1f5f9; }
+        body.dark .text-slate-900 { color: #f8fafc; }
+        body.dark .border-slate-100 { border-color: #334155; }
+        body.dark #pdfFrame { background: #1e293b; border-color: #334155; }
+
         .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
         #marqueeBar { width: 100%; background: #2563eb; color: white; height: 40px; display: flex; align-items: center; overflow: hidden; }
         
-        /* Fixed Marquee Styles */
         .marquee-container { width: 100%; overflow: hidden; white-space: nowrap; }
         .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; font-weight: 700; font-size: 0.9rem; }
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
@@ -30,10 +41,11 @@
         body.is-admin .admin-only { display: inline-flex !important; }
         #pdfFrame { width: 100%; height: calc(100vh - 160px); border-radius: 24px; border: 1px solid #e2e8f0; background: white; }
         
-        /* Search Bar Style */
         .search-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 2rem auto; }
         .search-input { width: 100%; padding: 12px 20px 12px 45px; border-radius: 15px; border: 1px solid #e2e8f0; background: white; outline: none; transition: all 0.3s; }
         .search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+
+        .theme-toggle { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     </style>
 </head>
 
@@ -45,7 +57,10 @@
             </div>
             <h1 class="text-xl font-extrabold tracking-tight uppercase">AGC BCA</h1>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 items-center">
+            <button onclick="toggleDarkMode()" class="theme-toggle text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <i id="themeIcon" class="fas fa-moon text-lg"></i>
+            </button>
             <button id="logoutBtn" onclick="handleLogout()" class="admin-only bg-red-50 text-red-600 px-3 py-2 rounded-xl font-bold text-sm hover:bg-red-100 transition-all">Logout</button>
             <button id="adminAuthBtn" onclick="checkAdmin()" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md">Admin</button>
         </div>
@@ -70,34 +85,34 @@
         </div>
 
         <div id="semesterSelection" class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12 animate-slide-up">
-            <div onclick="openSemester('1')" class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-blue-100 flex flex-col items-center text-center shadow-xl hover:bg-blue-50">
+            <div onclick="openSemester('1')" class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-blue-100 flex flex-col items-center text-center shadow-xl hover:bg-blue-50 dark:hover:bg-blue-900/20">
                 <div class="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-lg"><i class="fas fa-layer-group"></i></div>
-                <h2 class="text-3xl font-black text-slate-800">Semester 1</h2>
+                <h2 class="text-3xl font-black">Semester 1</h2>
             </div>
-            <div onclick="openSemester('2')" class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-purple-100 flex flex-col items-center text-center shadow-xl hover:bg-purple-50">
+            <div onclick="openSemester('2')" class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-purple-100 flex flex-col items-center text-center shadow-xl hover:bg-purple-50 dark:hover:bg-purple-900/20">
                 <div class="w-20 h-20 bg-purple-600 text-white rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-lg"><i class="fas fa-layer-group"></i></div>
-                <h2 class="text-3xl font-black text-slate-800">Semester 2</h2>
+                <h2 class="text-3xl font-black">Semester 2</h2>
             </div>
         </div>
 
         <div id="searchView" class="hidden animate-slide-up">
-            <h2 class="text-xl font-bold text-slate-800 mb-6">Search Results</h2>
+            <h2 class="text-xl font-bold mb-6">Search Results</h2>
             <div id="searchResultsGrid" class="grid gap-4"></div>
         </div>
 
         <div id="subjectView" class="hidden animate-slide-up">
-            <h2 id="selectedSemTitle" class="text-2xl font-black text-slate-800 mb-8"></h2>
+            <h2 id="selectedSemTitle" class="text-2xl font-black mb-8"></h2>
             <div id="subjectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
         </div>
 
         <div id="chapterView" class="hidden animate-slide-up">
-            <h2 id="viewTitle" class="text-3xl font-black text-slate-800 tracking-tight mb-10"></h2>
+            <h2 id="viewTitle" class="text-3xl font-black tracking-tight mb-10"></h2>
             <div id="chapterList" class="grid gap-4"></div>
         </div>
 
         <div id="pdfViewerMode" class="hidden animate-slide-up">
             <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-                <button onclick="window.history.back()" class="w-full sm:w-auto flex items-center justify-center gap-2 text-slate-600 font-bold bg-slate-100 px-6 py-3 rounded-xl">
+                <button onclick="window.history.back()" class="w-full sm:w-auto flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 font-bold bg-slate-100 dark:bg-slate-800 px-6 py-3 rounded-xl">
                     <i class="fas fa-arrow-left"></i> Back
                 </button>
                 <button onclick="downloadPdfWithProperName()" class="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold">
@@ -108,44 +123,45 @@
         </div>
     </main>
 
-    <footer id="mainFooter" class="py-8 text-center border-t border-slate-100 mt-12">
+    <footer id="mainFooter" class="py-8 text-center border-t border-slate-100 dark:border-slate-800 mt-12">
         <p class="text-slate-400 font-medium text-sm">Developed with <i class="fas fa-heart text-red-500"></i> by Hemant Patil</p>
         <p id="viewCounter" class="text-blue-500 font-bold text-xs mt-2 uppercase tracking-widest">Views: Loading...</p>
     </footer>
 
     <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-extrabold mb-6 text-center">Dashboard</h3>
-            <div class="mb-6 p-4 bg-blue-50 rounded-2xl">
+            <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
                 <label class="text-[10px] font-bold text-blue-600 uppercase">Marquee Notice</label>
-                <input type="text" id="marqueeInput" class="w-full p-3 rounded-xl mb-2 text-sm mt-1">
+                <input type="text" id="marqueeInput" class="w-full p-3 rounded-xl mb-2 text-sm mt-1 dark:bg-slate-900 dark:border-slate-700">
                 <button onclick="updateAnnouncement()" id="marqueeBtn" class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-bold">Update Marquee</button>
             </div>
             <div class="space-y-4">
-                <select id="uploadSemester" onchange="updateUploadSubjects()" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
+                <select id="uploadSemester" onchange="updateUploadSubjects()" class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700">
                     <option value="1">Semester 1</option>
                     <option value="2">Semester 2</option>
                 </select>
-                <select id="uploadSubject" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200"></select>
-                <input type="text" id="uploadChapter" placeholder="Chapter Title" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
+                <select id="uploadSubject" class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700"></select>
+                <input type="text" id="uploadChapter" placeholder="Chapter Title" class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf">
-                <label for="fileInput" class="flex flex-col items-center border-2 border-dashed rounded-2xl p-6 cursor-pointer"><i class="fas fa-file-pdf text-2xl mb-2"></i><span id="fileName" class="text-xs">Select PDF</span></label>
-                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish Note</button>
+                <label for="fileInput" class="flex flex-col items-center border-2 border-dashed dark:border-slate-600 rounded-2xl p-6 cursor-pointer"><i class="fas fa-file-pdf text-2xl mb-2"></i><span id="fileName" class="text-xs">Select PDF</span></label>
+                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 dark:bg-blue-600 text-white py-4 rounded-2xl font-black">Publish Note</button>
                 <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-sm">Close Dashboard</button>
             </div>
         </div>
     </div>
 
     <div id="loginModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
+        <div class="bg-white dark:bg-slate-800 w-full max-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
             <h3 class="text-2xl font-extrabold mb-6">Admin Login</h3>
-            <input type="password" id="adminPassInput" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 outline-none mb-4 text-center">
+            <input type="password" id="adminPassInput" class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700 outline-none mb-4 text-center">
             <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Login</button>
             <button onclick="closeLoginModal()" class="mt-4 text-slate-400 text-sm font-bold">Cancel</button>
         </div>
     </div>
 
     <script>
+        // Existing Supabase config
         const SUPABASE_URL = 'https://tyxeltkpandqqyfmimmk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5eGVsdGtwYW5kcXF5Zm1pbW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxODMxMTUsImV4cCI6MjA4Mjc1OTExNX0.fGvS-0LK16POTVkfZbMsmfiAo-_WZqLZU9Lurh-a4gU';
         const ADMIN_PASS = 'HeM@n!123';
@@ -168,6 +184,26 @@
 
         let allNotes = [], isAdmin = false, activeSubject = "", activeSem = "", currentPdfUrl = "", currentPdfTitle = "";
 
+        // DARK MODE LOGIC
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const icon = document.getElementById('themeIcon');
+            icon.className = isDark ? 'fas fa-sun text-lg' : 'fas fa-moon text-lg';
+        }
+
+        // Check saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.classList.add('dark');
+            updateThemeIcon(true);
+        }
+
+        // --- Rest of your original functions (unmodified logic) ---
         window.addEventListener('popstate', (event) => {
             const state = event.state;
             if (!state || state.view === 'home') renderHome();
@@ -190,7 +226,6 @@
             document.getElementById('mainFooter').classList.remove('hidden');
         }
 
-        // --- Search Logic ---
         function handleSearch(query) {
             const resultsGrid = document.getElementById('searchResultsGrid');
             const searchView = document.getElementById('searchView');
@@ -218,11 +253,11 @@
             }
 
             resultsGrid.innerHTML = filtered.map(n => `
-                <div class="glass p-5 rounded-2xl flex justify-between items-center border border-slate-100 shadow-sm">
+                <div class="glass p-5 rounded-2xl flex justify-between items-center border border-slate-100 dark:border-slate-800 shadow-sm">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-file-pdf"></i></div>
+                        <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-file-pdf"></i></div>
                         <div>
-                            <h4 class="font-bold text-slate-800 text-sm">${n.title}</h4>
+                            <h4 class="font-bold text-sm">${n.title}</h4>
                             <p class="text-[10px] text-slate-400 uppercase font-bold">${n.subject} • Sem ${n.semester}</p>
                         </div>
                     </div>
@@ -231,7 +266,6 @@
             `).join('');
         }
 
-        // --- Core Functions ---
         function openSemester(sem) { renderSubjects(sem, true); }
 
         function renderSubjects(sem, push) {
@@ -248,9 +282,9 @@
             const meta = subjectsData[sem];
             document.getElementById('subjectGrid').innerHTML = meta.map(s => {
                 const count = allNotes.filter(n => n.subject === s.name && String(n.semester) === String(sem)).length;
-                return `<div onclick="renderChapters('${s.name}', '${sem}', true)" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer border border-white/50">
-                    <div class="w-16 h-16 bg-${s.color}-100 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6"><i class="fas ${s.icon}"></i></div>
-                    <h3 class="text-lg font-extrabold text-slate-800">${s.name}</h3>
+                return `<div onclick="renderChapters('${s.name}', '${sem}', true)" class="subject-card glass p-8 rounded-[2.5rem] cursor-pointer border border-white/50 dark:border-slate-800">
+                    <div class="w-16 h-16 bg-${s.color}-100 dark:bg-${s.color}-900/30 text-${s.color}-600 rounded-2xl flex items-center justify-center text-3xl mb-6"><i class="fas ${s.icon}"></i></div>
+                    <h3 class="text-lg font-extrabold">${s.name}</h3>
                     <div class="text-slate-400 text-xs font-semibold">${count} Chapters</div>
                 </div>`;
             }).join('');
@@ -267,18 +301,18 @@
 
             const filtered = allNotes.filter(n => n.subject === sub && String(n.semester) === String(sem)).sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
             document.getElementById('chapterList').innerHTML = filtered.map(n => `
-                <div class="glass p-5 rounded-2xl flex justify-between items-center border border-slate-100">
+                <div class="glass p-5 rounded-2xl flex justify-between items-center border border-slate-100 dark:border-slate-800">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-file-pdf"></i></div>
+                        <div class="w-10 h-10 bg-white dark:bg-slate-700 rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-file-pdf"></i></div>
                         <div>
-                            <h4 class="font-bold text-slate-800 text-sm">${n.title}</h4>
+                            <h4 class="font-bold text-sm">${n.title}</h4>
                             <div class="admin-only mt-1 flex gap-3">
                                 <button onclick="renameNote(${n.id}, '${n.title}')" class="text-[10px] text-blue-500 font-bold">Rename</button>
                                 <button onclick="deleteNote(${n.id})" class="text-[10px] text-red-500 font-bold">Delete</button>
                             </div>
                         </div>
                     </div>
-                    <button onclick="renderPdf('${n.file_url}', '${n.title}', true)" class="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold text-xs">Open</button>
+                    <button onclick="renderPdf('${n.file_url}', '${n.title}', true)" class="bg-slate-900 dark:bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-xs">Open</button>
                 </div>`).join('');
         }
 
@@ -318,7 +352,6 @@
             updateVisitCount();
         }
 
-        // --- Admin & Utils ---
         function showSubjects() { history.pushState({ view: 'home' }, ""); renderHome(); }
         function checkSession() { if (localStorage.getItem('agc_admin') === 'true') { isAdmin = true; document.body.classList.add('is-admin'); document.getElementById('adminAuthBtn').innerText = 'Dashboard'; } }
         function checkAdmin() { isAdmin ? document.getElementById('uploadModal').classList.remove('hidden') : document.getElementById('loginModal').classList.remove('hidden'); }
