@@ -11,94 +11,33 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fcfdfe; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        #marqueeBar { width: 100%; background: #2563eb; color: white; height: 40px; display: flex; align-items: center; overflow: hidden; }
+        
+        /* Fixed Marquee Styles */
+        .marquee-container { width: 100%; overflow: hidden; white-space: nowrap; }
+        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; font-weight: 700; font-size: 0.9rem; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #fcfdfe;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        #marqueeBar {
-            width: 100%;
-            background: #2563eb;
-            color: white;
-        }
-
-        marquee {
-            display: block;
-            width: 100%;
-            font-weight: 700;
-            padding: 12px 0;
-            font-size: 0.95rem;
-            white-space: pre;
-        }
-
-        .subject-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .subject-card:hover {
-            transform: translateY(-10px) scale(1.02);
-        }
-
-        .animate-slide-up {
-            animation: slideUp 0.4s ease-out forwards;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        main {
-            flex: 1;
-        }
-
-        .admin-only {
-            display: none !important;
-        }
-
-        body.is-admin .admin-only {
-            display: inline-flex !important;
-        }
-
-        #pdfFrame {
-            width: 100%;
-            height: calc(100vh - 160px);
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            background: white;
-        }
+        .subject-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .subject-card:hover { transform: translateY(-10px) scale(1.02); }
+        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        main { flex: 1; }
+        .admin-only { display: none !important; }
+        body.is-admin .admin-only { display: inline-flex !important; }
+        #pdfFrame { width: 100%; height: calc(100vh - 160px); border-radius: 24px; border: 1px solid #e2e8f0; background: white; }
+        
+        /* Search Bar Style */
+        .search-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 2rem auto; }
+        .search-input { width: 100%; padding: 12px 20px 12px 45px; border-radius: 15px; border: 1px solid #e2e8f0; background: white; outline: none; transition: all 0.3s; }
+        .search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
     </style>
- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1323958362413207"
-     crossorigin="anonymous"></script>
 </head>
 
 <body class="text-slate-900">
-<amp-auto-ads type="adsense"
-        data-ad-client="ca-pub-1323958362413207">
-</amp-auto-ads>
     <nav id="mainNav" class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
         <div class="flex items-center gap-2 cursor-pointer" onclick="showSubjects()">
             <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -107,41 +46,43 @@
             <h1 class="text-xl font-extrabold tracking-tight uppercase">AGC BCA</h1>
         </div>
         <div class="flex gap-2">
-            <button id="logoutBtn" onclick="handleLogout()"
-                class="admin-only bg-red-50 text-red-600 px-3 py-2 rounded-xl font-bold text-sm hover:bg-red-100 transition-all">Logout</button>
-            <button id="adminAuthBtn" onclick="checkAdmin()"
-                class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md active:scale-95">Admin</button>
+            <button id="logoutBtn" onclick="handleLogout()" class="admin-only bg-red-50 text-red-600 px-3 py-2 rounded-xl font-bold text-sm hover:bg-red-100 transition-all">Logout</button>
+            <button id="adminAuthBtn" onclick="checkAdmin()" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md">Admin</button>
         </div>
     </nav>
 
     <div id="marqueeBar">
-        <marquee id="updateMarquee" behavior="scroll" direction="left" scrollamount="6">Welcome to AGC BCA Portal...
-        </marquee>
+        <div class="marquee-container">
+            <span id="updateMarquee" class="marquee-content">Welcome to AGC BCA Portal... Fetching latest updates...</span>
+        </div>
     </div>
 
     <main class="max-w-6xl mx-auto px-6 py-8 w-full">
+        <div id="searchBox" class="search-container animate-slide-up">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Search notes or chapters..." class="search-input">
+        </div>
+
         <div id="navigationControls" class="mb-8 hidden">
-            <button onclick="window.history.back()"
-                class="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">
+            <button onclick="window.history.back()" class="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
         </div>
 
         <div id="semesterSelection" class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12 animate-slide-up">
-            <div onclick="openSemester('1')"
-                class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-blue-100 flex flex-col items-center text-center shadow-xl hover:bg-blue-50">
-                <div
-                    class="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-lg">
-                    <i class="fas fa-layer-group"></i></div>
+            <div onclick="openSemester('1')" class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-blue-100 flex flex-col items-center text-center shadow-xl hover:bg-blue-50">
+                <div class="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-lg"><i class="fas fa-layer-group"></i></div>
                 <h2 class="text-3xl font-black text-slate-800">Semester 1</h2>
             </div>
-            <div onclick="openSemester('2')"
-                class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-purple-100 flex flex-col items-center text-center shadow-xl hover:bg-purple-50">
-                <div
-                    class="w-20 h-20 bg-purple-600 text-white rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-lg">
-                    <i class="fas fa-layer-group"></i></div>
+            <div onclick="openSemester('2')" class="subject-card glass p-12 rounded-[3rem] cursor-pointer border-2 border-purple-100 flex flex-col items-center text-center shadow-xl hover:bg-purple-50">
+                <div class="w-20 h-20 bg-purple-600 text-white rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-lg"><i class="fas fa-layer-group"></i></div>
                 <h2 class="text-3xl font-black text-slate-800">Semester 2</h2>
             </div>
+        </div>
+
+        <div id="searchView" class="hidden animate-slide-up">
+            <h2 class="text-xl font-bold text-slate-800 mb-6">Search Results</h2>
+            <div id="searchResultsGrid" class="grid gap-4"></div>
         </div>
 
         <div id="subjectView" class="hidden animate-slide-up">
@@ -156,12 +97,10 @@
 
         <div id="pdfViewerMode" class="hidden animate-slide-up">
             <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-                <button onclick="window.history.back()"
-                    class="w-full sm:w-auto flex items-center justify-center gap-2 text-slate-600 font-bold bg-slate-100 px-6 py-3 rounded-xl">
+                <button onclick="window.history.back()" class="w-full sm:w-auto flex items-center justify-center gap-2 text-slate-600 font-bold bg-slate-100 px-6 py-3 rounded-xl">
                     <i class="fas fa-arrow-left"></i> Back
                 </button>
-                <button onclick="downloadPdfWithProperName()"
-                    class="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold">
+                <button onclick="downloadPdfWithProperName()" class="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold">
                     <i class="fas fa-download"></i> Download
                 </button>
             </div>
@@ -170,51 +109,38 @@
     </main>
 
     <footer id="mainFooter" class="py-8 text-center border-t border-slate-100 mt-12">
-        <p class="text-slate-400 font-medium text-sm">Developed with <i class="fas fa-heart text-red-500"></i> by Hemant
-            Patil</p>
+        <p class="text-slate-400 font-medium text-sm">Developed with <i class="fas fa-heart text-red-500"></i> by Hemant Patil</p>
         <p id="viewCounter" class="text-blue-500 font-bold text-xs mt-2 uppercase tracking-widest">Views: Loading...</p>
     </footer>
 
-    <div id="uploadModal"
-        class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
+    <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-extrabold mb-6 text-center">Dashboard</h3>
             <div class="mb-6 p-4 bg-blue-50 rounded-2xl">
                 <label class="text-[10px] font-bold text-blue-600 uppercase">Marquee Notice</label>
                 <input type="text" id="marqueeInput" class="w-full p-3 rounded-xl mb-2 text-sm mt-1">
-                <button onclick="updateAnnouncement()" id="marqueeBtn"
-                    class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-bold">Update Marquee</button>
+                <button onclick="updateAnnouncement()" id="marqueeBtn" class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-bold">Update Marquee</button>
             </div>
             <div class="space-y-4">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Upload Note</label>
-                <select id="uploadSemester" onchange="updateUploadSubjects()"
-                    class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
+                <select id="uploadSemester" onchange="updateUploadSubjects()" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                     <option value="1">Semester 1</option>
                     <option value="2">Semester 2</option>
                 </select>
                 <select id="uploadSubject" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200"></select>
-                <input type="text" id="uploadChapter" placeholder="Chapter Title"
-                    class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
+                <input type="text" id="uploadChapter" placeholder="Chapter Title" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf">
-                <label for="fileInput"
-                    class="flex flex-col items-center border-2 border-dashed rounded-2xl p-6 cursor-pointer"><i
-                        class="fas fa-file-pdf text-2xl mb-2"></i><span id="fileName" class="text-xs">Select
-                        PDF</span></label>
-                <button onclick="handleUpload()" id="uploadBtn"
-                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish Note</button>
+                <label for="fileInput" class="flex flex-col items-center border-2 border-dashed rounded-2xl p-6 cursor-pointer"><i class="fas fa-file-pdf text-2xl mb-2"></i><span id="fileName" class="text-xs">Select PDF</span></label>
+                <button onclick="handleUpload()" id="uploadBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish Note</button>
                 <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-sm">Close Dashboard</button>
             </div>
         </div>
     </div>
 
-    <div id="loginModal"
-        class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
         <div class="bg-white w-full max-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
             <h3 class="text-2xl font-extrabold mb-6">Admin Login</h3>
-            <input type="password" id="adminPassInput"
-                class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 outline-none mb-4 text-center">
-            <button onclick="attemptLogin()"
-                class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Login</button>
+            <input type="password" id="adminPassInput" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 outline-none mb-4 text-center">
+            <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Login</button>
             <button onclick="closeLoginModal()" class="mt-4 text-slate-400 text-sm font-bold">Cancel</button>
         </div>
     </div>
@@ -251,21 +177,67 @@
         });
 
         function renderHome() {
+            document.getElementById('searchInput').value = "";
+            document.getElementById('searchView').classList.add('hidden');
             document.getElementById('semesterSelection').classList.remove('hidden');
             document.getElementById('subjectView').classList.add('hidden');
             document.getElementById('chapterView').classList.add('hidden');
             document.getElementById('navigationControls').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.add('hidden');
             document.getElementById('mainNav').classList.remove('hidden');
-            document.getElementById('marqueeBar').style.display = 'block';
+            document.getElementById('marqueeBar').style.display = 'flex';
+            document.getElementById('searchBox').classList.remove('hidden');
             document.getElementById('mainFooter').classList.remove('hidden');
         }
 
+        // --- Search Logic ---
+        function handleSearch(query) {
+            const resultsGrid = document.getElementById('searchResultsGrid');
+            const searchView = document.getElementById('searchView');
+            const semesterSelection = document.getElementById('semesterSelection');
+
+            if (query.trim().length === 0) {
+                searchView.classList.add('hidden');
+                semesterSelection.classList.remove('hidden');
+                return;
+            }
+
+            semesterSelection.classList.add('hidden');
+            document.getElementById('subjectView').classList.add('hidden');
+            document.getElementById('chapterView').classList.add('hidden');
+            searchView.classList.remove('hidden');
+
+            const filtered = allNotes.filter(n => 
+                n.title.toLowerCase().includes(query.toLowerCase()) || 
+                n.subject.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                resultsGrid.innerHTML = `<p class="text-center text-slate-400 py-10">No notes found matching "${query}"</p>`;
+                return;
+            }
+
+            resultsGrid.innerHTML = filtered.map(n => `
+                <div class="glass p-5 rounded-2xl flex justify-between items-center border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-file-pdf"></i></div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">${n.title}</h4>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold">${n.subject} • Sem ${n.semester}</p>
+                        </div>
+                    </div>
+                    <button onclick="renderPdf('${n.file_url}', '${n.title}', true)" class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-xs">Open</button>
+                </div>
+            `).join('');
+        }
+
+        // --- Core Functions ---
         function openSemester(sem) { renderSubjects(sem, true); }
 
         function renderSubjects(sem, push) {
             activeSem = sem;
             if (push) history.pushState({ view: 'subjects', sem }, "");
+            document.getElementById('searchBox').classList.add('hidden');
             document.getElementById('semesterSelection').classList.add('hidden');
             document.getElementById('chapterView').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.add('hidden');
@@ -314,31 +286,14 @@
             currentPdfUrl = url; currentPdfTitle = title;
             if (push) history.pushState({ view: 'pdf', url, title }, "");
             document.getElementById('chapterView').classList.add('hidden');
+            document.getElementById('searchView').classList.add('hidden');
+            document.getElementById('searchBox').classList.add('hidden');
             document.getElementById('navigationControls').classList.add('hidden');
             document.getElementById('mainNav').classList.add('hidden');
             document.getElementById('marqueeBar').style.display = 'none';
             document.getElementById('mainFooter').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.remove('hidden');
             document.getElementById('pdfFrame').src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
-        }
-
-        async function renameNote(id, oldTitle) {
-            const newTitle = prompt("Enter new name:", oldTitle);
-            if (newTitle && newTitle !== oldTitle) {
-                await _supabase.from('notes_list').update({ title: newTitle }).eq('id', id);
-                location.reload();
-            }
-        }
-
-        async function downloadPdfWithProperName() {
-            try {
-                const res = await fetch(currentPdfUrl);
-                const blob = await res.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = `${currentPdfTitle}.pdf`;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            } catch (e) { window.open(currentPdfUrl, '_blank'); }
         }
 
         async function updateVisitCount() {
@@ -354,12 +309,16 @@
             const { data } = await _supabase.from('notes_list').select('*');
             allNotes = data || [];
             const { data: ann } = await _supabase.from('announcements').select('content').eq('id', 1).single();
-            if (ann) { document.getElementById('updateMarquee').innerText = ann.content; document.getElementById('marqueeInput').value = ann.content; }
+            if (ann) { 
+                document.getElementById('updateMarquee').innerText = ann.content; 
+                document.getElementById('marqueeInput').value = ann.content; 
+            }
             renderHome();
             updateUploadSubjects();
             updateVisitCount();
         }
 
+        // --- Admin & Utils ---
         function showSubjects() { history.pushState({ view: 'home' }, ""); renderHome(); }
         function checkSession() { if (localStorage.getItem('agc_admin') === 'true') { isAdmin = true; document.body.classList.add('is-admin'); document.getElementById('adminAuthBtn').innerText = 'Dashboard'; } }
         function checkAdmin() { isAdmin ? document.getElementById('uploadModal').classList.remove('hidden') : document.getElementById('loginModal').classList.remove('hidden'); }
@@ -368,6 +327,17 @@
         function closeModal() { document.getElementById('uploadModal').classList.add('hidden'); }
         function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
         function updateUploadSubjects() { const sem = document.getElementById('uploadSemester').value; document.getElementById('uploadSubject').innerHTML = subjectsData[sem].map(s => `<option value="${s.name}">${s.name}</option>`).join(''); }
+
+        async function downloadPdfWithProperName() {
+            try {
+                const res = await fetch(currentPdfUrl);
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `${currentPdfTitle}.pdf`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            } catch (e) { window.open(currentPdfUrl, '_blank'); }
+        }
 
         async function updateAnnouncement() {
             const text = document.getElementById('marqueeInput').value;
@@ -397,5 +367,4 @@
         loadData();
     </script>
 </body>
-
 </html>
