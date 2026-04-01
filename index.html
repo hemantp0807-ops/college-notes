@@ -211,7 +211,6 @@
             updateThemeIcon(true);
         }
 
-        // --- Rest of your original functions (unmodified logic) ---
         window.addEventListener('popstate', (event) => {
             const state = event.state;
             if (!state || state.view === 'home') renderHome();
@@ -398,6 +397,14 @@
             const { data } = _supabase.storage.from('notes').getPublicUrl(fName);
             await _supabase.from('notes_list').insert([{ title, subject, file_url: data.publicUrl, semester }]);
             location.reload();
+        }
+
+        async function renameNote(id, oldTitle) {
+            const newTitle = prompt("Enter new title:", oldTitle);
+            if (newTitle && newTitle !== oldTitle) {
+                await _supabase.from('notes_list').update({ title: newTitle }).eq('id', id);
+                location.reload();
+            }
         }
 
         async function deleteNote(id) { if (confirm("Delete?")) { await _supabase.from('notes_list').delete().eq('id', id); location.reload(); } }
