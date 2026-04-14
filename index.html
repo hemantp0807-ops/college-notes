@@ -124,9 +124,14 @@
                 <button onclick="window.history.back()" class="w-full sm:w-auto flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 font-bold bg-slate-100 dark:bg-slate-800 px-6 py-3 rounded-xl">
                     <i class="fas fa-arrow-left"></i> Back
                 </button>
-                <button onclick="downloadPdfWithProperName()" class="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold">
-                    <i class="fas fa-download"></i> Download
-                </button>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button onclick="shareLink(currentPdfUrl, currentPdfTitle)" class="flex-1 sm:flex-none bg-blue-600 text-white px-6 py-3 rounded-xl font-bold">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                    <button onclick="downloadPdfWithProperName()" class="flex-1 sm:flex-none bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
             </div>
             <iframe id="pdfFrame" src=""></iframe>
         </div>
@@ -170,7 +175,6 @@
     </div>
 
     <script>
-        // Existing Supabase config
         const SUPABASE_URL = 'https://qcsnwphtwfecgcvpkqct.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjc253cGh0d2ZlY2djdnBrcWN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDI4MzcsImV4cCI6MjA5MTcxODgzN30.3BmtEr7lJFgnUYyLWLYFLvphdcSdyR69kmDEBNAgbIo';
         const ADMIN_PASS = 'HeM@n!123';
@@ -193,7 +197,6 @@
 
         let allNotes = [], isAdmin = false, activeSubject = "", activeSem = "", currentPdfUrl = "", currentPdfTitle = "";
 
-        // DARK MODE LOGIC
         function toggleDarkMode() {
             const isDark = document.body.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
@@ -205,7 +208,6 @@
             icon.className = isDark ? 'fas fa-sun text-lg' : 'fas fa-moon text-lg';
         }
 
-        // Check saved theme preference
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.body.classList.add('dark');
@@ -269,7 +271,10 @@
                             <p class="text-[10px] text-slate-400 uppercase font-bold">${n.subject} • Sem ${n.semester}</p>
                         </div>
                     </div>
-                    <button onclick="renderPdf('${n.file_url}', '${n.title}', true)" class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-xs">Open</button>
+                    <div class="flex gap-2">
+                         <button onclick="shareLink('${n.file_url}', '${n.title}')" class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-white p-2 rounded-xl"><i class="fas fa-share-alt"></i></button>
+                         <button onclick="renderPdf('${n.file_url}', '${n.title}', true)" class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-xs">Open</button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -320,7 +325,10 @@
                             </div>
                         </div>
                     </div>
-                    <button onclick="renderPdf('${n.file_url}', '${n.title}', true)" class="bg-slate-900 dark:bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-xs">Open</button>
+                    <div class="flex gap-2">
+                        <button onclick="shareLink('${n.file_url}', '${n.title}')" class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-white p-2 px-3 rounded-xl"><i class="fas fa-share-alt"></i></button>
+                        <button onclick="renderPdf('${n.file_url}', '${n.title}', true)" class="bg-slate-900 dark:bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-xs">Open</button>
+                    </div>
                 </div>`).join('');
         }
 
@@ -336,6 +344,21 @@
             document.getElementById('mainFooter').classList.add('hidden');
             document.getElementById('pdfViewerMode').classList.remove('hidden');
             document.getElementById('pdfFrame').src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+        }
+
+        async function shareLink(url, title) {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: `Check out these notes: ${title}`,
+                        url: url,
+                    });
+                } catch (err) { console.log('Error sharing', err); }
+            } else {
+                navigator.clipboard.writeText(url);
+                alert('Link copied to clipboard!');
+            }
         }
 
         async function updateVisitCount() {
