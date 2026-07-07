@@ -495,19 +495,34 @@
 
         async function downloadPdfWithProperName() { try { const res = await fetch(currentPdfUrl); const blob = await res.blob(); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${currentPdfTitle}.pdf`; document.body.appendChild(a); a.click(); document.body.removeChild(a); } catch (e) { window.open(currentPdfUrl, '_blank'); } }
         async function updateAnnouncement() { const text = document.getElementById('marqueeInput').value; await _supabase.from('announcements').update({ content: text }).eq('id', 1); location.reload(); }
+        
         async function handleUpload() {
             const file = document.getElementById('fileInput').files[0];
             const subject = document.getElementById('uploadSubject').value;
             const title = document.getElementById('uploadChapter').value;
             const semester = document.getElementById('uploadSemester').value;
             if (!file || !title) return alert("Missing fields");
-            document.getElementById('uploadBtn').innerText = "Uploading...";
-            const fName = `${Date.now()}_${file.name}`;
-            await _supabase.storage.from('notes').upload(fName, file);
-            const { data } = _supabase.storage.from('notes').getPublicUrl(fName);
-            await _supabase.from('notes_list').insert([{ title, subject, file_url: data.publicUrl, semester }]);
-            location.reload();
+            
+            const btn = document.getElementById('uploadBtn');
+            btn.innerText = "Uploading...";
+            btn.disabled = true;
+
+            try {
+                const fName = `${Date.now()}_${file.name}`;
+                await _supabase.storage.from('notes').upload(fName, file);
+                const { data } = _supabase.storage.from('notes').getPublicUrl(fName);
+                await _supabase.from('notes_list').insert([{ title, subject, file_url: data.publicUrl, semester }]);
+                
+                alert("Uploaded successfully!");
+                location.reload();
+            } catch (e) {
+                console.error(e);
+                alert("Upload failed. Please try again.");
+                btn.innerText = "Publish Note";
+                btn.disabled = false;
+            }
         }
+        
         async function renameNote(id, oldTitle) { const newTitle = prompt("Enter new title:", oldTitle); if (newTitle && newTitle !== oldTitle) { await _supabase.from('notes_list').update({ title: newTitle }).eq('id', id); location.reload(); } }
         async function deleteNote(id) { if (confirm("Delete?")) { await _supabase.from('notes_list').delete().eq('id', id); location.reload(); } }
         document.getElementById('fileInput').onchange = e => { if (e.target.files[0]) document.getElementById('fileName').innerText = e.target.files[0].name; };
