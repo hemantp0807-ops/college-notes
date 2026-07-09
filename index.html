@@ -2,11 +2,6 @@
 <html lang="en">
 
 <head>
-    <meta name="google-site-verification" content="1g5f8i_STuYkokAQKjvTfJB9cexsWkZDcUfQx9GkfrM" />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1323958362413207"
-        crossorigin="anonymous"></script>
-    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AGC BCA Notes | Student Portal</title>
@@ -32,7 +27,6 @@
             overflow-x: hidden;
         }
 
-        /* Dark Mode Colors */
         body.dark {
             background: #0f172a;
             color: #f1f5f9;
@@ -68,6 +62,28 @@
         body.dark #pdfFrame {
             background: #1e293b;
             border-color: #334155;
+        }
+
+        body.dark .text-blue-600 {
+            color: #60a5fa !important;
+        }
+
+        body.dark .text-purple-600 {
+            color: #a78bfa !important;
+        }
+
+        body.dark .bg-blue-50 {
+            background-color: rgba(30, 64, 175, 0.2);
+        }
+
+        body.dark .bg-purple-50 {
+            background-color: rgba(126, 34, 206, 0.2);
+        }
+
+        body.dark input,
+        body.dark select {
+            color: white !important;
+            background: #1e293b !important;
         }
 
         .glass {
@@ -189,8 +205,8 @@
 </head>
 
 <body class="text-slate-900">
-    <amp-auto-ads type="adsense" data-ad-client="ca-pub-1323958362413207">
-    </amp-auto-ads>
+    <amp-auto-ads type="adsense" data-ad-client="ca-pub-1323958362413207"></amp-auto-ads>
+
     <nav id="mainNav" class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
         <div class="flex items-center gap-2 cursor-pointer" onclick="showSubjects()">
             <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -249,7 +265,7 @@
                     <div onclick="openSemester('3')"
                         class="subject-card p-6 bg-purple-50 dark:bg-purple-900/20 rounded-2xl cursor-pointer text-center font-bold hover:bg-purple-100">
                         Sem 3</div>
-                    <div onclick="openSemester('4')"
+                    <div
                         class="subject-card p-6 bg-purple-50 dark:bg-purple-900/20 rounded-2xl cursor-pointer text-center font-bold hover:bg-purple-100">
                         Sem 4</div>
                 </div>
@@ -305,30 +321,28 @@
             <h3 class="text-2xl font-extrabold mb-6 text-center">Dashboard</h3>
             <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
                 <label class="text-[10px] font-bold text-blue-600 uppercase">Marquee Notice</label>
-                <input type="text" id="marqueeInput"
-                    class="w-full p-3 rounded-xl mb-2 text-sm mt-1 dark:bg-slate-900 dark:border-slate-700">
+                <input type="text" id="marqueeInput" class="w-full p-3 rounded-xl mb-2 text-sm mt-1">
                 <button onclick="updateAnnouncement()" id="marqueeBtn"
                     class="w-full bg-blue-600 text-white py-2 rounded-xl text-sm font-bold">Update Marquee</button>
             </div>
             <div class="space-y-4">
                 <select id="uploadSemester" onchange="updateUploadSubjects()"
-                    class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700">
+                    class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                     <option value="1">Semester 1</option>
                     <option value="2">Semester 2</option>
                     <option value="3">Semester 3</option>
                     <option value="4">Semester 4</option>
                 </select>
-                <select id="uploadSubject"
-                    class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700"></select>
+                <select id="uploadSubject" class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200"></select>
                 <input type="text" id="uploadChapter" placeholder="Chapter Title"
-                    class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700">
+                    class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf">
                 <label for="fileInput"
-                    class="flex flex-col items-center border-2 border-dashed dark:border-slate-600 rounded-2xl p-6 cursor-pointer"><i
+                    class="flex flex-col items-center border-2 border-dashed rounded-2xl p-6 cursor-pointer"><i
                         class="fas fa-file-pdf text-2xl mb-2"></i><span id="fileName" class="text-xs">Select
                         PDF</span></label>
                 <button onclick="handleUpload()" id="uploadBtn"
-                    class="w-full bg-slate-900 dark:bg-blue-600 text-white py-4 rounded-2xl font-black">Publish
+                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Publish
                     Note</button>
                 <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-sm">Close Dashboard</button>
             </div>
@@ -337,10 +351,10 @@
 
     <div id="loginModal"
         class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] backdrop-blur-sm p-4">
-        <div class="bg-white dark:bg-slate-800 w-full max-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[2.5rem] p-10 shadow-2xl text-center">
             <h3 class="text-2xl font-extrabold mb-6">Admin Login</h3>
             <input type="password" id="adminPassInput"
-                class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700 outline-none mb-4 text-center">
+                class="w-full p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200 outline-none mb-4 text-center">
             <button onclick="attemptLogin()"
                 class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Login</button>
             <button onclick="closeLoginModal()" class="mt-4 text-slate-400 text-sm font-bold">Cancel</button>
@@ -356,8 +370,8 @@
         const subjectsData = {
             "1": [{ name: 'C programming', icon: 'fa-code', color: 'blue' }, { name: 'Web Designing', icon: 'fa-pencil-ruler', color: 'purple' }, { name: 'Graph Theory', icon: 'fa-project-diagram', color: 'emerald' }, { name: 'Basic of Electronics', icon: 'fa-microchip', color: 'orange' }],
             "2": [{ name: 'Advanced C Programming', icon: 'fa-terminal', color: 'blue' }, { name: 'DBMS', icon: 'fa-database', color: 'purple' }, { name: 'Mathematics', icon: 'fa-calculator', color: 'emerald' }, { name: 'Electronics', icon: 'fa-bolt', color: 'orange' }],
-            "3": [{ name: 'Data Structures', icon: 'fa-sitemap', color: 'blue' }, { name: 'Java Programming', icon: 'fa-coffee', color: 'purple' }, { name: 'Computer Networks', icon: 'fa-network-wired', color: 'emerald' }, { name: 'Operating Systems', icon: 'fa-cogs', color: 'orange' }],
-            "4": [{ name: 'Python Programming', icon: 'fa-code', color: 'blue' }, { name: 'Software Engineering', icon: 'fa-tools', color: 'purple' }, { name: 'Web Development', icon: 'fa-globe', color: 'emerald' }, { name: 'Cloud Computing', icon: 'fa-cloud', color: 'orange' }]
+            "3": [{ name: 'Data Structures', icon: 'fa-sitemap', color: 'blue' }, { name: 'RDBMS', icon: 'fa-database', color: 'purple' }, { name: 'Discrete Mathematics', icon: 'fa-calculator', color: 'emerald' }, { name: 'Python', icon: 'fa-code', color: 'orange' }, { name: 'Electronics', icon: 'fa-bolt', color: 'pink' }],
+            "4": [{ name: 'Java Programming', icon: 'fa-java', color: 'blue' }, { name: 'Software Engineering', icon: 'fa-cogs', color: 'purple' }, { name: 'Operating Systems', icon: 'fa-microchip', color: 'emerald' }, { name: 'Computer Networks', icon: 'fa-network-wired', color: 'orange' }]
         };
 
         let allNotes = [], isAdmin = false, activeSubject = "", activeSem = "", currentPdfUrl = "", currentPdfTitle = "";
@@ -495,14 +509,14 @@
 
         async function downloadPdfWithProperName() { try { const res = await fetch(currentPdfUrl); const blob = await res.blob(); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${currentPdfTitle}.pdf`; document.body.appendChild(a); a.click(); document.body.removeChild(a); } catch (e) { window.open(currentPdfUrl, '_blank'); } }
         async function updateAnnouncement() { const text = document.getElementById('marqueeInput').value; await _supabase.from('announcements').update({ content: text }).eq('id', 1); location.reload(); }
-        
+
         async function handleUpload() {
             const file = document.getElementById('fileInput').files[0];
             const subject = document.getElementById('uploadSubject').value;
             const title = document.getElementById('uploadChapter').value;
             const semester = document.getElementById('uploadSemester').value;
             if (!file || !title) return alert("Missing fields");
-            
+
             const btn = document.getElementById('uploadBtn');
             btn.innerText = "Uploading...";
             btn.disabled = true;
@@ -512,7 +526,7 @@
                 await _supabase.storage.from('notes').upload(fName, file);
                 const { data } = _supabase.storage.from('notes').getPublicUrl(fName);
                 await _supabase.from('notes_list').insert([{ title, subject, file_url: data.publicUrl, semester }]);
-                
+
                 alert("Uploaded successfully!");
                 location.reload();
             } catch (e) {
@@ -522,7 +536,7 @@
                 btn.disabled = false;
             }
         }
-        
+
         async function renameNote(id, oldTitle) { const newTitle = prompt("Enter new title:", oldTitle); if (newTitle && newTitle !== oldTitle) { await _supabase.from('notes_list').update({ title: newTitle }).eq('id', id); location.reload(); } }
         async function deleteNote(id) { if (confirm("Delete?")) { await _supabase.from('notes_list').delete().eq('id', id); location.reload(); } }
         document.getElementById('fileInput').onchange = e => { if (e.target.files[0]) document.getElementById('fileName').innerText = e.target.files[0].name; };
